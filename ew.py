@@ -63,7 +63,9 @@ if __name__ == '__main__':
         influxdb_client=influxdb_client,
         kafka_data_client=kafka_data_client,
         filter_handler=filter_handler,
-        event=event
+        event=event,
+        get_data_timeout=config.get_data_timeout,
+        get_data_limit=config.get_data_limit
     )
     util.ShutdownHandler.register(
         sig_nums=[signal.SIGTERM, signal.SIGINT],

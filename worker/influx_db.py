@@ -22,11 +22,13 @@ import threading
 
 
 class InfluxDB:
-    def __init__(self, influxdb_client: influxdb.InfluxDBClient, kafka_data_client: ew_lib.clients.KafkaDataClient, filter_handler: ew_lib.filter.FilterHandler, event: threading.Event):
+    def __init__(self, influxdb_client: influxdb.InfluxDBClient, kafka_data_client: ew_lib.clients.KafkaDataClient, filter_handler: ew_lib.filter.FilterHandler, event: threading.Event, get_data_timeout: float = 5.0, get_data_limit: int = 10000):
         self.__influxdb_client = influxdb_client
         self.__kafka_data_client = kafka_data_client
         self.__filter_handler = filter_handler
         self.__event = event
+        self.__get_data_timeout = get_data_timeout
+        self.__get_data_limit = get_data_limit
         self.__stop = False
 
     def stop(self):
