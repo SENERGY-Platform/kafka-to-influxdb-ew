@@ -32,7 +32,7 @@ class InfluxDBConfig(sevm.Config):
     port = None
     username = None
     password = None
-    retries = 3
+    retries = 0
     timeout = 10
     time_precision = None
 
