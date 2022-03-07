@@ -18,6 +18,7 @@ import util
 import ew_lib
 import confluent_kafka
 import influxdb
+import threading
 import signal
 
 
@@ -32,6 +33,7 @@ if __name__ == '__main__':
         retries=config.influxdb.retries,
         timeout=config.influxdb.timeout
     )
+    event = threading.Event()
     filter_handler = ew_lib.filter.FilterHandler()
     kafka_filter_client = ew_lib.clients.KafkaFilterClient(
         kafka_consumer=confluent_kafka.Consumer(
@@ -44,6 +46,7 @@ if __name__ == '__main__':
         filter_handler=filter_handler,
         filter_topic=config.kafka.filter_topic
     )
+    kafka_filter_client.set_on_sync(event.set)
     kafka_data_client = ew_lib.clients.KafkaDataClient(
         kafka_consumer=confluent_kafka.Consumer(
             {
