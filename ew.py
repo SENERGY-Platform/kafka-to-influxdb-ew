@@ -57,7 +57,7 @@ if __name__ == '__main__':
     )
     util.ShutdownHandler.register(
         sig_nums=[signal.SIGTERM, signal.SIGINT],
-        callables=[kafka_data_client.stop, kafka_filter_client.stop, influxdb_client.close]
+        callables=[influxdb_client.close, kafka_data_client.stop, kafka_filter_client.stop]
     )
     kafka_filter_client.start()
     kafka_data_client.start()
