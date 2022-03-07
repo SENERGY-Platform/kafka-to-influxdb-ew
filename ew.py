@@ -15,7 +15,34 @@
 """
 
 import util
+import ew_lib
+import confluent_kafka
+import signal
+
 
 if __name__ == '__main__':
     config = util.Config(prefix="conf", require_value=True)
     util.init_logger(config.logger_level)
+    filter_handler = ew_lib.filter.FilterHandler()
+    kafka_filter_client = ew_lib.clients.KafkaFilterClient(
+        kafka_consumer=confluent_kafka.Consumer(
+            {
+                "metadata.broker.list": config.kafka.metadata_broker_list,
+                "group.id": f"{config.kafka.filter_consumer_group_id}_{config.kafka.filter_consumer_group_id_postfix}",
+                "auto.offset.reset": "earliest",
+            }
+        ),
+        filter_handler=filter_handler,
+        filter_topic=config.kafka.filter_topic
+    )
+    kafka_data_client = ew_lib.clients.KafkaDataClient(
+        kafka_consumer=confluent_kafka.Consumer(
+            {
+                "metadata.broker.list": config.kafka.metadata_broker_list,
+                "group.id": config.kafka.data_consumer_group_id,
+                "auto.offset.reset": "earliest",
+                "partition.assignment.strategy": "cooperative-sticky"
+            }
+        ),
+        filter_handler=filter_handler
+    )
