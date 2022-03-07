@@ -15,6 +15,7 @@
 """
 
 import util
+import worker
 import ew_lib
 import confluent_kafka
 import influxdb
@@ -58,9 +59,16 @@ if __name__ == '__main__':
         ),
         filter_handler=filter_handler
     )
+    influxdb_worker = worker.InfluxDB(
+        influxdb_client=influxdb_client,
+        kafka_data_client=kafka_data_client,
+        filter_handler=filter_handler,
+        event=event
+    )
     util.ShutdownHandler.register(
         sig_nums=[signal.SIGTERM, signal.SIGINT],
-        callables=[influxdb_client.close, kafka_data_client.stop, kafka_filter_client.stop]
+        callables=[influxdb_worker.stop, influxdb_client.close, kafka_data_client.stop, kafka_filter_client.stop]
     )
     kafka_filter_client.start()
     kafka_data_client.start()
+    influxdb_worker.run()
