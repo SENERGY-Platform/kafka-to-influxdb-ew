@@ -28,10 +28,10 @@ class KafkaConfig(sevm.Config):
 
 
 class InfluxDBConfig(sevm.Config):
-    influxdb_host = None
-    influxdb_port = None
-    influxdb_user = None
-    influxdb_password = None
+    host = None
+    port = None
+    username = None
+    password = None
     time_precision = None
 
 
