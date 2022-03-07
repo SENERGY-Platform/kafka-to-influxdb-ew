@@ -17,5 +17,5 @@
 import util
 
 if __name__ == '__main__':
-    config = util.Config(prefix="CONF_", require_value=True)
+    config = util.Config(prefix="conf", require_value=True)
     util.init_logger(config.logger_level)
