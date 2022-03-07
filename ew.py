@@ -50,3 +50,5 @@ if __name__ == '__main__':
         sig_nums=[signal.SIGTERM, signal.SIGINT],
         callables=[kafka_data_client.stop, kafka_filter_client.stop]
     )
+    kafka_filter_client.start()
+    kafka_data_client.start()
