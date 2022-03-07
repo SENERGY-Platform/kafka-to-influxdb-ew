@@ -34,7 +34,6 @@ class InfluxDBConfig(sevm.Config):
     password = None
     retries = 3
     timeout = 10
-    time_precision = None
 
 
 class Config(sevm.Config):
