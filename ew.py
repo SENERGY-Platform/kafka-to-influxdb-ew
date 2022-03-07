@@ -17,12 +17,21 @@
 import util
 import ew_lib
 import confluent_kafka
+import influxdb
 import signal
 
 
 if __name__ == '__main__':
     config = util.Config(prefix="conf", require_value=True)
     util.init_logger(config.logger_level)
+    influxdb_client = influxdb.InfluxDBClient(
+        host=config.influxdb.host,
+        port=config.influxdb.port,
+        username=config.influxdb.username,
+        password=config.influxdb.password,
+        retries=config.influxdb.retries,
+        timeout=config.influxdb.timeout
+    )
     filter_handler = ew_lib.filter.FilterHandler()
     kafka_filter_client = ew_lib.clients.KafkaFilterClient(
         kafka_consumer=confluent_kafka.Consumer(
@@ -48,7 +57,7 @@ if __name__ == '__main__':
     )
     util.ShutdownHandler.register(
         sig_nums=[signal.SIGTERM, signal.SIGINT],
-        callables=[kafka_data_client.stop, kafka_filter_client.stop]
+        callables=[kafka_data_client.stop, kafka_filter_client.stop, influxdb_client.close]
     )
     kafka_filter_client.start()
     kafka_data_client.start()
