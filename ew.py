@@ -46,3 +46,7 @@ if __name__ == '__main__':
         ),
         filter_handler=filter_handler
     )
+    util.ShutdownHandler.register(
+        sig_nums=[signal.SIGTERM, signal.SIGINT],
+        callables=[kafka_data_client.stop, kafka_filter_client.stop]
+    )
