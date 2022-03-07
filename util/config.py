@@ -38,5 +38,7 @@ class InfluxDBConfig(sevm.Config):
 
 class Config(sevm.Config):
     logger_level = "warning"
+    get_data_timeout = 5.0
+    get_data_limit = 10000
     kafka = KafkaConfig
     influxdb = InfluxDBConfig
