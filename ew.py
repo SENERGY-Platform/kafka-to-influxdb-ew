@@ -72,7 +72,7 @@ if __name__ == '__main__':
         get_data_limit=config.get_data_limit
     )
     util.ShutdownHandler.register(
-        sig_nums=[signal.SIGTERM, signal.SIGINT],
+        sig_nums=[signal.SIGTERM, signal.SIGINT, signal.SIGABRT],
         callables=[influxdb_worker.stop, influxdb_client.close, kafka_data_client.stop, kafka_filter_client.stop]
     )
     kafka_filter_client.start()
