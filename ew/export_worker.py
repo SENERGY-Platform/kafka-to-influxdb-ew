@@ -81,9 +81,9 @@ class ExportWorker:
         self.__get_data_limit = get_data_limit
         self.__stop = False
 
-    def _gen_points_batch(self, exports: typing.List):
+    def _gen_points_batch(self, exports_batch: typing.List):
         points_batch = dict()
-        for export in exports:
+        for export in exports_batch:
             for export_id in export[2]:
                 try:
                     export_args = self.__filter_handler.get_export_args(export_id=export_id)
@@ -136,7 +136,7 @@ class ExportWorker:
                     limit=self.__get_data_limit,
                 )
                 if exports_batch:
-                    self._write_points_batch(points_batch=self._gen_points_batch(exports=exports_batch))
+                    self._write_points_batch(points_batch=self._gen_points_batch(exports_batch=exports_batch))
             except WritePointsError as ex:
                 util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: {ex}")
                 signal.raise_signal(signal.SIGABRT)
