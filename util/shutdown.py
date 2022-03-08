@@ -28,7 +28,6 @@ class ShutdownHandler:
         ShutdownHandler.__callables = callables
         for num in sig_nums:
             signal.signal(num, ShutdownHandler.__handle_signal)
-            signal.signal(num, ShutdownHandler.__handle_signal)
 
     @staticmethod
     def __handle_signal(sig_num, stack_frame):
