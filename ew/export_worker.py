@@ -14,7 +14,7 @@
    limitations under the License.
 """
 
-__all__ = ("InfluxDB", )
+__all__ = ("ExportWorker",)
 
 import util
 import ew_lib
@@ -68,8 +68,8 @@ def gen_point(export_id, export_data, export_extra, time_key: str, time_format: 
     return point
 
 
-class InfluxDB:
-    __log_msg_prefix = "influxdb worker"
+class ExportWorker:
+    __log_msg_prefix = "export worker"
     __log_err_msg_prefix = f"{__log_msg_prefix} error"
 
     def __init__(self, influxdb_client: influxdb.InfluxDBClient, kafka_data_client: ew_lib.clients.KafkaDataClient, filter_handler: ew_lib.filter.FilterHandler, event: threading.Event, get_data_timeout: float = 5.0, get_data_limit: int = 10000):
@@ -102,7 +102,7 @@ class InfluxDB:
                         utc=export_args.get(ExportArgs.utc)
                     ))
                 except Exception as ex:
-                    util.logger.error(f"{InfluxDB.__log_err_msg_prefix}: generating points for '{export_id}' failed: {ex}")
+                    util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: generating points for '{export_id}' failed: {ex}")
         return points_batch
 
     def __write_points_batch(self, points_batch: typing.Dict):
@@ -138,7 +138,7 @@ class InfluxDB:
                 if exports_batch:
                     self.__write_points_batch(points_batch=self.__gen_points_batch(exports=exports_batch))
             except WritePointsError as ex:
-                util.logger.error(f"{InfluxDB.__log_err_msg_prefix}: {ex}")
+                util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: {ex}")
                 signal.raise_signal(signal.SIGABRT)
             except Exception as ex:
-                util.logger.error(f"{InfluxDB.__log_err_msg_prefix}: getting exports failed: {ex}")
+                util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: getting exports failed: {ex}")
