@@ -39,25 +39,29 @@ if __name__ == '__main__':
     kafka_filter_client = ew_lib.clients.KafkaFilterClient(
         kafka_consumer=confluent_kafka.Consumer(
             {
-                "metadata.broker.list": config.kafka.metadata_broker_list,
-                "group.id": f"{config.kafka.filter_consumer_group_id}_{config.kafka.filter_consumer_group_id_postfix}",
+                "metadata.broker.list": config.kafka_metadata_broker_list,
+                "group.id": f"{config.kafka_filter_client.consumer_group_id}_{config.kafka_filter_client.consumer_group_id_postfix}",
                 "auto.offset.reset": "earliest",
             }
         ),
         filter_handler=filter_handler,
-        filter_topic=config.kafka.filter_topic
+        filter_topic=config.kafka_filter_client.filter_topic,
+        poll_timeout=config.kafka_filter_client.poll_timeout,
+        time_format=config.kafka_filter_client.time_format,
+        utc=config.kafka_filter_client.utc
     )
-    kafka_filter_client.set_on_sync(event.set)
+    kafka_filter_client.set_on_sync(callable=event.set, sync_delay=config.kafka_filter_client.sync_delay)
     kafka_data_client = ew_lib.clients.KafkaDataClient(
         kafka_consumer=confluent_kafka.Consumer(
             {
-                "metadata.broker.list": config.kafka.metadata_broker_list,
-                "group.id": config.kafka.data_consumer_group_id,
+                "metadata.broker.list": config.kafka_metadata_broker_list,
+                "group.id": config.kafka_data_client.consumer_group_id,
                 "auto.offset.reset": "earliest",
                 "partition.assignment.strategy": "cooperative-sticky"
             }
         ),
-        filter_handler=filter_handler
+        filter_handler=filter_handler,
+        subscribe_interval=config.kafka_data_client.subscribe_interval
     )
     influxdb_worker = worker.InfluxDB(
         influxdb_client=influxdb_client,

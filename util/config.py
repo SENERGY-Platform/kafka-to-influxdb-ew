@@ -19,12 +19,19 @@ __all__ = ("Config", )
 import sevm
 
 
-class KafkaConfig(sevm.Config):
-    metadata_broker_list = None
-    data_consumer_group_id = None
-    filter_consumer_group_id = None
-    filter_consumer_group_id_postfix = None
+class KafkaDataClient(sevm.Config):
+    consumer_group_id = None
+    subscribe_interval = 5
+
+
+class KafkaFilterClient(sevm.Config):
+    consumer_group_id = None
+    consumer_group_id_postfix = None
     filter_topic = None
+    poll_timeout = 1.0
+    sync_delay = 30
+    time_format = None
+    utc = True
 
 
 class InfluxDBConfig(sevm.Config):
@@ -40,5 +47,7 @@ class Config(sevm.Config):
     logger_level = "warning"
     get_data_timeout = 5.0
     get_data_limit = 10000
-    kafka = KafkaConfig
+    kafka_metadata_broker_list = None
+    kafka_data_client = KafkaDataClient
+    kafka_filter_client = KafkaFilterClient
     influxdb = InfluxDBConfig
