@@ -16,11 +16,13 @@
 
 __all__ = ("ShutdownHandler", )
 
+from .logger import logger
 import typing
 import signal
 
 
 class ShutdownHandler:
+    __log_msg_prefix = "shutdown handler"
     __callables = None
 
     @staticmethod
@@ -31,9 +33,9 @@ class ShutdownHandler:
 
     @staticmethod
     def __handle_signal(sig_num, stack_frame):
-        print(f"got signal '{sig_num}': exiting ...")
+        logger.warning(f"{ShutdownHandler.__log_msg_prefix}: caught '{signal.Signals(sig_num).name}'")
         for func in ShutdownHandler.__callables:
             try:
                 func()
             except Exception as ex:
-                print(f"calling {func} failed: {ex}")
+                logger.error(f"{ShutdownHandler.__log_msg_prefix} error: calling {func} failed: {ex}")
