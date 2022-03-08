@@ -33,7 +33,7 @@ class LoggerError(Exception):
 
 
 handler = logging.StreamHandler()
-handler.setFormatter(logging.Formatter(fmt="%(levelname)s: [%(name)s] %(message)s"))
+handler.setFormatter(logging.Formatter(fmt="%(levelname)s: %(message)s"))
 
 logger = logging.getLogger("ew")
 logger.propagate = False
