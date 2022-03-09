@@ -24,6 +24,7 @@ import signal
 class ShutdownHandler:
     __log_msg_prefix = "shutdown handler"
     __callables = None
+    __triggerd = False
 
     @staticmethod
     def register(sig_nums: typing.List[int], callables: typing.List[typing.Callable]):
@@ -33,9 +34,11 @@ class ShutdownHandler:
 
     @staticmethod
     def __handle_signal(sig_num, stack_frame):
-        logger.warning(f"{ShutdownHandler.__log_msg_prefix}: caught '{signal.Signals(sig_num).name}'")
-        for func in ShutdownHandler.__callables:
-            try:
-                func()
-            except Exception as ex:
-                logger.error(f"{ShutdownHandler.__log_msg_prefix} error: calling {func} failed: {ex}")
+        if not ShutdownHandler.__triggerd:
+            ShutdownHandler.__triggerd = True
+            logger.warning(f"{ShutdownHandler.__log_msg_prefix}: caught '{signal.Signals(sig_num).name}'")
+            for func in ShutdownHandler.__callables:
+                try:
+                    func()
+                except Exception as ex:
+                    logger.error(f"{ShutdownHandler.__log_msg_prefix} error: calling {func} failed: {ex}")
