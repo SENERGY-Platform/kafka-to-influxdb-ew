@@ -71,10 +71,14 @@ if __name__ == '__main__':
         get_data_timeout=config.get_data_timeout,
         get_data_limit=config.get_data_limit
     )
-    util.ShutdownHandler.register(
-        sig_nums=[signal.SIGTERM, signal.SIGINT, signal.SIGABRT],
-        callables=[export_worker.stop, influxdb_client.close, kafka_data_client.stop, kafka_filter_client.stop]
+    watchdog = util.Watchdog(
+        monitor_callables=[export_worker.is_alive, kafka_filter_client.is_alive, kafka_data_client.is_alive],
+        shutdown_callables=[export_worker.stop, influxdb_client.close, kafka_data_client.stop, kafka_filter_client.stop],
+        shutdown_signals=[signal.SIGTERM, signal.SIGINT, signal.SIGABRT],
+        monitor_delay=config.watchdog_monitor_delay
     )
     kafka_filter_client.start()
     kafka_data_client.start()
+    watchdog.start()
     export_worker.run()
+    watchdog.join()
