@@ -26,8 +26,6 @@ class Watchdog:
     __log_err_msg_prefix = f"{__log_msg_prefix} error"
 
     def __init__(self, monitor_callables: typing.Optional[typing.List[typing.Callable[..., bool]]] = None, shutdown_callables: typing.Optional[typing.List[typing.Callable]] = None, shutdown_signals: typing.Optional[typing.List[int]] = None, monitor_delay: int = 2):
-        if shutdown_signals:
-            self.register_shutdown_signals(sig_nums=shutdown_signals)
         self.__monitor_callables = monitor_callables
         self.__shutdown_callables = shutdown_callables
         self.__monitor_delay = monitor_delay
@@ -37,6 +35,8 @@ class Watchdog:
         self.__event = threading.Event()
         self.__signal = None
         self.__stop = False
+        if shutdown_signals:
+            self.register_shutdown_signals(sig_nums=shutdown_signals)
 
     def __handle_shutdown(self, sig_num, stack_frame):
         if not self.__signal:
