@@ -48,6 +48,7 @@ class Config(sevm.Config):
     get_data_timeout = 5.0
     get_data_limit = 10000
     kafka_metadata_broker_list = None
+    watchdog_monitor_delay = 2
     kafka_data_client = KafkaDataClient
     kafka_filter_client = KafkaFilterClient
     influxdb = InfluxDBConfig
