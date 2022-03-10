@@ -31,6 +31,7 @@ class Watchdog:
         self.__monitor_callables = monitor_callables
         self.__shutdown_callables = shutdown_callables
         self.__monitor_delay = monitor_delay
+        self.__start_delay = None
         self.__thread = threading.Thread(target=self.__monitor, daemon=True)
         self.__event = threading.Event()
         self.__signal = None
@@ -50,6 +51,7 @@ class Watchdog:
             self.__event.set()
 
     def __monitor(self):
+        time.sleep(self.__start_delay)
         while not self.__signal:
             for func in self.__monitor_callables:
                 try:
@@ -76,7 +78,8 @@ class Watchdog:
         else:
             self.__monitor_callables = callables
 
-    def start(self):
+    def start(self, delay=5):
+        self.__start_delay = delay
         self.__thread.start()
 
     def join(self):
