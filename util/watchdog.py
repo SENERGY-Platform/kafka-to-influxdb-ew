@@ -31,6 +31,7 @@ class Watchdog:
         self.__monitor_callables = monitor_callables
         self.__shutdown_callables = shutdown_callables
         self.__monitor_delay = monitor_delay
+        self.__shutdown_signals = list()
         self.__start_delay = None
         self.__thread = threading.Thread(target=self.__monitor, daemon=True)
         self.__event = threading.Event()
@@ -64,7 +65,9 @@ class Watchdog:
 
     def register_shutdown_signals(self, sig_nums: typing.List[int]):
         for num in sig_nums:
-            signal.signal(num, self.__handle_shutdown)
+            if num not in self.__shutdown_signals:
+                signal.signal(num, self.__handle_shutdown)
+                self.__shutdown_signals.append(num)
 
     def register_shutdown_callables(self, callables: typing.List[typing.Callable]):
         if self.__shutdown_callables:
