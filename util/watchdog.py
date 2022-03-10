@@ -39,7 +39,7 @@ class Watchdog:
             self.register_shutdown_signals(sig_nums=shutdown_signals)
 
     def __handle_shutdown(self, sig_num, stack_frame):
-        if not self.__signal:
+        if self.__signal is None:
             self.__signal = sig_num
             logger.warning(f"{Watchdog.__log_msg_prefix}: caught '{signal.Signals(sig_num).name}'")
             if self.__shutdown_callables:
