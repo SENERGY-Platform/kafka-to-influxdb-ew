@@ -131,7 +131,9 @@ class ExportWorker:
         return not self.__stop
 
     def run(self):
+        util.logger.info(f"{ExportWorker.__log_msg_prefix}: waiting for filter synchronisation ...")
         self.__event.wait()
+        util.logger.info(f"{ExportWorker.__log_msg_prefix}: starting export consumption ...")
         while not self.__stop:
             try:
                 exports_batch = self.__kafka_data_client.get_exports_batch(
