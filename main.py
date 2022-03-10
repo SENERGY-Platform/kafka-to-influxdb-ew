@@ -36,7 +36,7 @@ if __name__ == '__main__':
     )
     event = threading.Event()
     filter_handler = ew_lib.filter.FilterHandler()
-    kafka_filter_client = ew_lib.clients.KafkaFilterClient(
+    kafka_filter_client = ew_lib.clients.kafka.KafkaFilterClient(
         kafka_consumer=confluent_kafka.Consumer(
             {
                 "metadata.broker.list": config.kafka_metadata_broker_list,
@@ -51,7 +51,7 @@ if __name__ == '__main__':
         utc=config.kafka_filter_client.utc
     )
     kafka_filter_client.set_on_sync(callable=event.set, sync_delay=config.kafka_filter_client.sync_delay)
-    kafka_data_client = ew_lib.clients.KafkaDataClient(
+    kafka_data_client = ew_lib.clients.kafka.KafkaDataClient(
         kafka_consumer=confluent_kafka.Consumer(
             {
                 "metadata.broker.list": config.kafka_metadata_broker_list,
