@@ -22,7 +22,6 @@ import influxdb
 import threading
 import typing
 import datetime
-import signal
 
 
 class ExportArgs:
