@@ -18,7 +18,6 @@ from .logger import logger
 import threading
 import typing
 import signal
-import time
 
 
 class Watchdog:
@@ -33,6 +32,7 @@ class Watchdog:
         self.__start_delay = None
         self.__thread = threading.Thread(target=self.__monitor, daemon=True)
         self.__event = threading.Event()
+        self.__sleeper = threading.Event()
         self.__signal = None
         self.__stop = False
         if shutdown_signals:
@@ -41,6 +41,7 @@ class Watchdog:
     def __handle_shutdown(self, sig_num, stack_frame):
         if self.__signal is None:
             self.__signal = sig_num
+            self.__sleeper.set()
             logger.warning(f"{Watchdog.__log_msg_prefix}: caught '{signal.Signals(sig_num).name}'")
             if self.__shutdown_callables:
                 logger.info(f"{Watchdog.__log_msg_prefix}: initiating shutdown ...")
@@ -52,7 +53,7 @@ class Watchdog:
             self.__event.set()
 
     def __monitor(self):
-        time.sleep(self.__start_delay)
+        self.__sleeper.wait(timeout=self.__start_delay)
         if signal.SIGABRT not in self.__shutdown_signals:
             self.register_shutdown_signals(sig_nums=[signal.SIGABRT])
         while self.__signal is None:
@@ -65,7 +66,7 @@ class Watchdog:
                         break
                 except Exception as ex:
                     logger.error(f"{Watchdog.__log_err_msg_prefix}: calling {func} failed: {ex}")
-            time.sleep(self.__monitor_delay)
+            self.__sleeper.wait(self.__monitor_delay)
         self.__event.wait()
         logger.info(f"{Watchdog.__log_msg_prefix}: shutdown complete")
 
