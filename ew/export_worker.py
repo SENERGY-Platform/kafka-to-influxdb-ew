@@ -146,7 +146,8 @@ class ExportWorker:
                     self._write_points_batch(points_batch=self._gen_points_batch(exports_batch=exports_batch))
                     self.__kafka_data_client.store_offsets()
             except WritePointsError as ex:
-                util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: {ex}")
-                signal.raise_signal(signal.SIGABRT)
+                util.logger.critical(f"{ExportWorker.__log_err_msg_prefix}: {ex}")
+                self.stop()
             except Exception as ex:
-                util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: getting exports failed: {ex}")
+                util.logger.critical(f"{ExportWorker.__log_err_msg_prefix}: consuming exports failed: {ex}")
+                self.stop()
