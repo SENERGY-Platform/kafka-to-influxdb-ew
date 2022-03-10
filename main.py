@@ -49,17 +49,18 @@ if __name__ == '__main__':
         time_format=config.kafka_filter_client.time_format,
         utc=config.kafka_filter_client.utc
     )
-    kafka_filter_client.set_on_sync(callable=event.set, sync_delay=config.kafka_filter_client.sync_delay)
+    kafka_filter_client.set_on_sync(callable=sync_event.set, sync_delay=config.kafka_filter_client.sync_delay)
+    kafka_data_consumer = confluent_kafka.Consumer(
+        {
+            "metadata.broker.list": config.kafka_metadata_broker_list,
+            "group.id": config.kafka_data_client.consumer_group_id,
+            "auto.offset.reset": "earliest",
+            "partition.assignment.strategy": "cooperative-sticky",
+            "enable.auto.offset.store": False
+        }
+    )
     kafka_data_client = ew_lib.clients.kafka.KafkaDataClient(
-        kafka_consumer=confluent_kafka.Consumer(
-            {
-                "metadata.broker.list": config.kafka_metadata_broker_list,
-                "group.id": config.kafka_data_client.consumer_group_id,
-                "auto.offset.reset": "earliest",
-                "partition.assignment.strategy": "cooperative-sticky",
-                "enable.auto.offset.store": False
-            }
-        ),
+        kafka_consumer=kafka_data_consumer,
         filter_handler=filter_handler,
         subscribe_interval=config.kafka_data_client.subscribe_interval,
         handle_offsets=True
@@ -74,7 +75,7 @@ if __name__ == '__main__':
     )
     watchdog = util.Watchdog(
         monitor_callables=[export_worker.is_alive, kafka_filter_client.is_alive, kafka_data_client.is_alive],
-        shutdown_callables=[export_worker.stop, influxdb_client.close, kafka_data_client.stop, kafka_filter_client.stop],
+        shutdown_callables=[export_worker.stop, influxdb_client.close, kafka_data_client.stop, kafka_data_consumer.close, kafka_filter_client.stop],
         shutdown_signals=[signal.SIGTERM, signal.SIGINT, signal.SIGABRT],
         monitor_delay=config.watchdog.monitor_delay
     )
