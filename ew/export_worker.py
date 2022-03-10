@@ -136,15 +136,16 @@ class ExportWorker:
         util.logger.info(f"{ExportWorker.__log_msg_prefix}: starting export consumption ...")
         while not self.__stop:
             try:
-                exports_batch, msg_exceptions = self.__kafka_data_client.get_exports_batch(
+                exports_batch = self.__kafka_data_client.get_exports_batch(
                     timeout=self.__get_data_timeout,
                     limit=self.__get_data_limit,
                 )
-                if msg_exceptions:
-                    raise RuntimeError([ex.code for ex in msg_exceptions])
                 if exports_batch:
-                    self._write_points_batch(points_batch=self._gen_points_batch(exports_batch=exports_batch))
-                    self.__kafka_data_client.store_offsets()
+                    if exports_batch[1]:
+                        raise RuntimeError([ex.code for ex in exports_batch[1]])
+                    if exports_batch[0]:
+                        self._write_points_batch(points_batch=self._gen_points_batch(exports_batch=exports_batch[0]))
+                        self.__kafka_data_client.store_offsets()
             except WritePointsError as ex:
                 util.logger.critical(f"{ExportWorker.__log_err_msg_prefix}: {ex}")
                 self.stop()
