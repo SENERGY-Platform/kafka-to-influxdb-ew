@@ -57,11 +57,13 @@ if __name__ == '__main__':
                 "metadata.broker.list": config.kafka_metadata_broker_list,
                 "group.id": config.kafka_data_client.consumer_group_id,
                 "auto.offset.reset": "earliest",
-                "partition.assignment.strategy": "cooperative-sticky"
+                "partition.assignment.strategy": "cooperative-sticky",
+                "enable.auto.offset.store": False
             }
         ),
         filter_handler=filter_handler,
-        subscribe_interval=config.kafka_data_client.subscribe_interval
+        subscribe_interval=config.kafka_data_client.subscribe_interval,
+        handle_offsets=True
     )
     export_worker = ew.ExportWorker(
         influxdb_client=influxdb_client,
