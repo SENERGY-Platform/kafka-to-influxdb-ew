@@ -71,11 +71,11 @@ class ExportWorker:
     __log_msg_prefix = "export worker"
     __log_err_msg_prefix = f"{__log_msg_prefix} error"
 
-    def __init__(self, influxdb_client: influxdb.InfluxDBClient, kafka_data_client: ew_lib.clients.kafka.KafkaDataClient, filter_handler: ew_lib.filter.FilterHandler, event: threading.Event, get_data_timeout: float = 5.0, get_data_limit: int = 10000):
+    def __init__(self, influxdb_client: influxdb.InfluxDBClient, kafka_data_client: ew_lib.clients.kafka.KafkaDataClient, filter_handler: ew_lib.filter.FilterHandler, sync_event: util.SyncEvent, get_data_timeout: float = 5.0, get_data_limit: int = 10000):
         self.__influxdb_client = influxdb_client
         self.__kafka_data_client = kafka_data_client
         self.__filter_handler = filter_handler
-        self.__event = event
+        self.__filter_sync_event = sync_event
         self.__get_data_timeout = get_data_timeout
         self.__get_data_limit = get_data_limit
         self.__stop = False
@@ -131,23 +131,24 @@ class ExportWorker:
 
     def run(self):
         util.logger.info(f"{ExportWorker.__log_msg_prefix}: waiting for filter synchronisation ...")
-        self.__event.wait()
-        util.logger.info(f"{ExportWorker.__log_msg_prefix}: starting export consumption ...")
-        while not self.__stop:
-            try:
-                exports_batch = self.__kafka_data_client.get_exports_batch(
-                    timeout=self.__get_data_timeout,
-                    limit=self.__get_data_limit,
-                )
-                if exports_batch:
-                    if exports_batch[1]:
-                        raise RuntimeError([ex.code for ex in exports_batch[1]])
-                    if exports_batch[0]:
-                        self._write_points_batch(points_batch=self._gen_points_batch(exports_batch=exports_batch[0]))
-                        self.__kafka_data_client.store_offsets()
-            except WritePointsError as ex:
-                util.logger.critical(f"{ExportWorker.__log_err_msg_prefix}: {ex}")
-                self.stop()
-            except Exception as ex:
-                util.logger.critical(f"{ExportWorker.__log_err_msg_prefix}: consuming exports failed: {ex}")
-                self.stop()
+        self.__filter_sync_event.wait()
+        if not self.__filter_sync_event.err:
+            util.logger.info(f"{ExportWorker.__log_msg_prefix}: starting export consumption ...")
+            while not self.__stop:
+                try:
+                    exports_batch = self.__kafka_data_client.get_exports_batch(
+                        timeout=self.__get_data_timeout,
+                        limit=self.__get_data_limit,
+                    )
+                    if exports_batch:
+                        if exports_batch[1]:
+                            raise RuntimeError([ex.code for ex in exports_batch[1]])
+                        if exports_batch[0]:
+                            self._write_points_batch(points_batch=self._gen_points_batch(exports_batch=exports_batch[0]))
+                            self.__kafka_data_client.store_offsets()
+                except WritePointsError as ex:
+                    util.logger.critical(f"{ExportWorker.__log_err_msg_prefix}: {ex}")
+                    self.__stop = True
+                except Exception as ex:
+                    util.logger.critical(f"{ExportWorker.__log_err_msg_prefix}: consuming exports failed: {ex}")
+                    self.__stop = True
