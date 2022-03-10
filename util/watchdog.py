@@ -53,11 +53,16 @@ class Watchdog:
 
     def __monitor(self):
         time.sleep(self.__start_delay)
-        while not self.__signal:
+        if signal.SIGABRT not in self.__shutdown_signals:
+            self.register_shutdown_signals(sig_nums=[signal.SIGABRT])
+        while self.__signal is None:
             for func in self.__monitor_callables:
+                if self.__signal is not None:
+                    break
                 try:
                     if not func():
-                        signal.raise_signal(signal.SIGABRT)
+                        self.__handle_shutdown(signal.SIGABRT, None)
+                        break
                 except Exception as ex:
                     logger.error(f"{Watchdog.__log_err_msg_prefix}: calling {func} failed: {ex}")
             time.sleep(self.__monitor_delay)
