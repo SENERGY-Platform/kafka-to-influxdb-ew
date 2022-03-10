@@ -142,6 +142,7 @@ class ExportWorker:
                 )
                 if exports_batch:
                     self._write_points_batch(points_batch=self._gen_points_batch(exports_batch=exports_batch))
+                    self.__kafka_data_client.store_offsets()
             except WritePointsError as ex:
                 util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: {ex}")
                 signal.raise_signal(signal.SIGABRT)
