@@ -140,6 +140,8 @@ class ExportWorker:
                     timeout=self.__get_data_timeout,
                     limit=self.__get_data_limit,
                 )
+                if msg_exceptions:
+                    raise RuntimeError([ex.code for ex in msg_exceptions])
                 if exports_batch:
                     self._write_points_batch(points_batch=self._gen_points_batch(exports_batch=exports_batch))
                     self.__kafka_data_client.store_offsets()
