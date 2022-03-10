@@ -127,6 +127,9 @@ class ExportWorker:
     def stop(self):
         self.__stop = True
 
+    def is_alive(self):
+        return not self.__stop
+
     def run(self):
         self.__event.wait()
         while not self.__stop:
