@@ -43,7 +43,7 @@ class Watchdog:
             self.__signal = sig_num
             logger.warning(f"{Watchdog.__log_msg_prefix}: caught '{signal.Signals(sig_num).name}'")
             if self.__shutdown_callables:
-                logger.warning(f"{Watchdog.__log_msg_prefix}: initiating shutdown ...")
+                logger.info(f"{Watchdog.__log_msg_prefix}: initiating shutdown ...")
                 for func in self.__shutdown_callables:
                     try:
                         func()
@@ -62,6 +62,7 @@ class Watchdog:
                     logger.error(f"{Watchdog.__log_err_msg_prefix}: calling {func} failed: {ex}")
             time.sleep(self.__monitor_delay)
         self.__event.wait()
+        logger.info(f"{Watchdog.__log_msg_prefix}: shutdown complete")
 
     def register_shutdown_signals(self, sig_nums: typing.List[int]):
         for num in sig_nums:
