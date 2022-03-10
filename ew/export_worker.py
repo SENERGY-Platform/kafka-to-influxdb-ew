@@ -136,7 +136,7 @@ class ExportWorker:
         util.logger.info(f"{ExportWorker.__log_msg_prefix}: starting export consumption ...")
         while not self.__stop:
             try:
-                exports_batch = self.__kafka_data_client.get_exports_batch(
+                exports_batch, msg_exceptions = self.__kafka_data_client.get_exports_batch(
                     timeout=self.__get_data_timeout,
                     limit=self.__get_data_limit,
                 )
