@@ -3,7 +3,7 @@ kafka-to-influxdb-ew
 
 Kafka to InfluxDB export-worker.
 
-## Docker compose example
+## Docker compose template
 
 ```yaml
 version: "2"
