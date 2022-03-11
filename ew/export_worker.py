@@ -71,13 +71,14 @@ class ExportWorker:
     __log_msg_prefix = "export worker"
     __log_err_msg_prefix = f"{__log_msg_prefix} error"
 
-    def __init__(self, influxdb_client: influxdb.InfluxDBClient, kafka_data_client: ew_lib.clients.kafka.KafkaDataClient, filter_handler: ew_lib.filter.FilterHandler, sync_event: util.SyncEvent, get_data_timeout: float = 5.0, get_data_limit: int = 10000):
+    def __init__(self, influxdb_client: influxdb.InfluxDBClient, kafka_data_client: ew_lib.clients.kafka.KafkaDataClient, filter_handler: ew_lib.filter.FilterHandler, get_data_timeout: float = 5.0, get_data_limit: int = 10000):
         self.__influxdb_client = influxdb_client
         self.__kafka_data_client = kafka_data_client
         self.__filter_handler = filter_handler
-        self.__filter_sync_event = sync_event
+        self.__filter_sync_event = threading.Event()
         self.__get_data_timeout = get_data_timeout
         self.__get_data_limit = get_data_limit
+        self.__filter_sync_err = False
         self.__stop = False
 
     def _gen_points_batch(self, exports_batch: typing.List):
@@ -123,6 +124,10 @@ class ExportWorker:
                     except Exception as ex:
                         raise WritePointsError((len(points), db_name, ex))
 
+    def set_filter_sync(self, err: bool):
+        self.__filter_sync_err = err
+        self.__filter_sync_event.set()
+
     def stop(self):
         self.__stop = True
 
@@ -132,7 +137,7 @@ class ExportWorker:
     def run(self):
         util.logger.info(f"{ExportWorker.__log_msg_prefix}: waiting for filter synchronisation ...")
         self.__filter_sync_event.wait()
-        if not self.__filter_sync_event.err:
+        if not self.__filter_sync_err:
             util.logger.info(f"{ExportWorker.__log_msg_prefix}: starting export consumption ...")
             while not self.__stop:
                 try:

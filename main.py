@@ -33,7 +33,6 @@ if __name__ == '__main__':
         retries=config.influxdb.retries,
         timeout=config.influxdb.timeout
     )
-    sync_event = util.SyncEvent()
     filter_handler = ew_lib.filter.FilterHandler()
     kafka_filter_client = ew_lib.clients.kafka.KafkaFilterClient(
         kafka_consumer=confluent_kafka.Consumer(
@@ -50,7 +49,6 @@ if __name__ == '__main__':
         time_format=config.kafka_filter_client.time_format,
         utc=config.kafka_filter_client.utc
     )
-    kafka_filter_client.set_on_sync(callable=sync_event.set, sync_delay=config.kafka_filter_client.sync_delay)
     kafka_data_consumer = confluent_kafka.Consumer(
         {
             "metadata.broker.list": config.kafka_metadata_broker_list,
@@ -71,10 +69,10 @@ if __name__ == '__main__':
         influxdb_client=influxdb_client,
         kafka_data_client=kafka_data_client,
         filter_handler=filter_handler,
-        sync_event=sync_event,
         get_data_timeout=config.get_data_timeout,
         get_data_limit=config.get_data_limit
     )
+    kafka_filter_client.set_on_sync(callable=export_worker.set_filter_sync, sync_delay=config.kafka_filter_client.sync_delay)
     watchdog = util.Watchdog(
         monitor_callables=[export_worker.is_alive, kafka_filter_client.is_alive, kafka_data_client.is_alive],
         shutdown_callables=[export_worker.stop, influxdb_client.close, kafka_data_client.stop, kafka_data_consumer.close, kafka_filter_client.stop],
