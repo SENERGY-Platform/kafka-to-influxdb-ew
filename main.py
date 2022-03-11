@@ -41,7 +41,8 @@ if __name__ == '__main__':
                 "metadata.broker.list": config.kafka_metadata_broker_list,
                 "group.id": f"{config.kafka_filter_client.consumer_group_id}_{config.kafka_filter_client.consumer_group_id_postfix}",
                 "auto.offset.reset": "earliest",
-            }
+            },
+            logger=util.logger
         ),
         filter_handler=filter_handler,
         filter_topic=config.kafka_filter_client.filter_topic,
@@ -57,7 +58,8 @@ if __name__ == '__main__':
             "auto.offset.reset": "earliest",
             "partition.assignment.strategy": "cooperative-sticky",
             "enable.auto.offset.store": False
-        }
+        },
+        logger=util.logger
     )
     kafka_data_client = ew_lib.clients.kafka.KafkaDataClient(
         kafka_consumer=kafka_data_consumer,
