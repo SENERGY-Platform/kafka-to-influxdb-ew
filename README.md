@@ -10,7 +10,6 @@ version: "2"
 
 services:
   kafka-to-influxdb-ew:
-    container_name: kafka-to-influxdb-ew
     image: ghcr.io/senergy-platform/kafka-to-influxdb-ew:prod
     environment:
       CONF_LOGGER_LEVEL: 
