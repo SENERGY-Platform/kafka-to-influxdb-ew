@@ -1,0 +1,96 @@
+"""
+   Copyright 2022 InfAI (CC SES)
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+"""
+
+from ._util import *
+import unittest
+import influxdb
+import json
+import ew_lib
+import ew
+
+
+with open("tests/resources/data.json") as file:
+    data: list = json.load(file)
+
+with open("tests/resources/filters.json") as file:
+    filters: list = json.load(file)
+
+with open("tests/resources/points_batch_results_l2.json") as file:
+    gen_points_batch_results_l2: list = json.load(file)
+
+with open("tests/resources/points_batch_results_l3.json") as file:
+    gen_points_batch_results_l3: list = json.load(file)
+
+
+class TestInfluxDBWorker(unittest.TestCase):
+    def _init_export_worker(self, influxdb_client=None, msg_error=False):
+        filter_handler = ew_lib.filter.FilterHandler()
+        test_kafka_consumer = TestKafkaConsumer(data=data, msg_error=msg_error)
+        kafka_data_client = ew_lib.clients.kafka.KafkaDataClient(
+            kafka_consumer=test_kafka_consumer,
+            filter_handler=filter_handler
+        )
+        export_worker = ew.ExportWorker(
+            influxdb_client=influxdb_client,
+            kafka_data_client=kafka_data_client,
+            filter_handler=filter_handler,
+        )
+        for filter in filters:
+            filter_handler.add_filter(filter=filter)
+        export_worker.set_filter_sync(err=False)
+        return export_worker, kafka_data_client, test_kafka_consumer
+
+    def _test_gen_points_batch(self, limit, results):
+        export_worker, kafka_data_client, test_kafka_consumer = self._init_export_worker()
+        count = 0
+        while not test_kafka_consumer.empty():
+            exports_batch, _ = kafka_data_client.get_exports_batch(timeout=5, limit=limit)
+            if exports_batch:
+                self.assertIn(str(export_worker._gen_points_batch(exports_batch=exports_batch)), results)
+                count += 1
+        self.assertEqual(count, len(results))
+
+    def test_gen_points_batch_l2(self):
+        self._test_gen_points_batch(limit=2, results=gen_points_batch_results_l2)
+
+    def test_gen_points_batch_l3(self):
+        self._test_gen_points_batch(limit=3, results=gen_points_batch_results_l3)
+
+    def test_write_points_batch(self):
+        influxdb_client = influxdb.InfluxDBClient(
+            host="localhost",
+            port=8086,
+            retries=3,
+            timeout=5
+        )
+        try:
+            influxdb_client.ping()
+        except Exception:
+            self.skipTest("influxdb not reachable")
+        export_worker, kafka_data_client, test_kafka_consumer = self._init_export_worker(influxdb_client=influxdb_client)
+        while not test_kafka_consumer.empty():
+            exports_batch, _ = kafka_data_client.get_exports_batch(timeout=5, limit=2)
+            if exports_batch:
+                export_worker._write_points_batch(points_batch=export_worker._gen_points_batch(exports_batch=exports_batch))
+        influxdb_client.close()
+
+    def test_consume_message_exception(self):
+        export_worker, _, _ = self._init_export_worker(msg_error=True)
+        export_worker.run()
+
+
+if __name__ == '__main__':
+    unittest.main()
