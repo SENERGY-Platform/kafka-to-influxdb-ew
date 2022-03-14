@@ -23,6 +23,7 @@ import signal
 
 
 if __name__ == '__main__':
+    util.print_init(git_info_file="git_commit")
     config = util.Config(prefix="conf", require_value=True)
     util.init_logger(config.logger_level)
     influxdb_client = influxdb.InfluxDBClient(
