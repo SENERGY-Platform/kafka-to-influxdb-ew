@@ -17,3 +17,22 @@
 from .config import *
 from .logger import *
 from .watchdog import *
+import sevm
+
+
+def print_init(git_info_file):
+    init_txt = "kafka-to-influxdb-ew\n"
+    with open(git_info_file, "r") as file:
+        for line in file:
+            init_txt += f"    {line.strip()}\n"
+    print(init_txt.strip())
+
+
+def config_to_dict(config):
+    items = dict()
+    for key, value in config.__dict__.items():
+        if isinstance(value, sevm.Config):
+            items[key] = config_to_dict(config=value)
+        else:
+            items[key] = value
+    return items
