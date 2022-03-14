@@ -18,14 +18,28 @@ from .config import *
 from .logger import *
 from .watchdog import *
 import sevm
+import math
 
 
-def print_init(git_info_file):
-    init_txt = "kafka-to-influxdb-ew\n"
+def print_init(name, git_info_file):
+    lines = list()
+    l_len = len(name)
     with open(git_info_file, "r") as file:
         for line in file:
-            init_txt += f"    {line.strip()}\n"
-    print(init_txt.strip())
+            key, value = line.strip().split("=")
+            line = f"commit {key}: {value}"
+            lines.append(line)
+            if len(line) > l_len:
+                l_len = len(line)
+    if len(name) < l_len:
+        l_len = math.ceil((l_len - len(name) - 2) / 2)
+        print("*" * l_len + f" {name} " + "*" * l_len)
+        l_len = 2 * l_len + len(name) + 2
+    else:
+        print(name)
+    for line in lines:
+        print(line)
+    print("*" * l_len)
 
 
 def config_to_dict(config):
