@@ -37,8 +37,8 @@ if __name__ == '__main__':
     kafka_filter_client = ew_lib.clients.kafka.KafkaFilterClient(
         kafka_consumer=confluent_kafka.Consumer(
             {
-                "metadata.broker.list": config.kafka_metadata_broker_list,
-                "group.id": f"{config.kafka_filter_client.consumer_group_id}_{config.kafka_filter_client.consumer_group_id_postfix}",
+                "metadata.broker.list": config.kafka.metadata_broker_list,
+                "group.id": f"{config.kafka_filter_client.consumer_group_id}_{config.kafka.consumer_group_id_postfix}",
                 "auto.offset.reset": "earliest",
             },
             logger=util.logger
@@ -51,8 +51,8 @@ if __name__ == '__main__':
     )
     kafka_data_consumer = confluent_kafka.Consumer(
         {
-            "metadata.broker.list": config.kafka_metadata_broker_list,
-            "group.id": config.kafka_data_client.consumer_group_id,
+            "metadata.broker.list": config.kafka.metadata_broker_list,
+            "group.id": f"{config.kafka_data_client.consumer_group_id}_{config.kafka.consumer_group_id_postfix}",
             "auto.offset.reset": "earliest",
             "partition.assignment.strategy": "cooperative-sticky",
             "enable.auto.offset.store": False
