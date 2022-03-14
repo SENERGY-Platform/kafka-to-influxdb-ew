@@ -24,12 +24,12 @@ class KafkaConfig(sevm.Config):
     consumer_group_id_postfix = None
 
 
-class KafkaDataClient(sevm.Config):
+class KafkaDataClientConfig(sevm.Config):
     consumer_group_id = None
     subscribe_interval = 5
 
 
-class KafkaFilterClient(sevm.Config):
+class KafkaFilterClientConfig(sevm.Config):
     consumer_group_id = None
     filter_topic = None
     poll_timeout = 1.0
@@ -57,7 +57,7 @@ class Config(sevm.Config):
     get_data_timeout = 5.0
     get_data_limit = 10000
     kafka = KafkaConfig
-    kafka_data_client = KafkaDataClient
-    kafka_filter_client = KafkaFilterClient
+    kafka_data_client = KafkaDataClientConfig
+    kafka_filter_client = KafkaFilterClientConfig
     influxdb = InfluxDBConfig
     watchdog = WatchdogConfig
