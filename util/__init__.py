@@ -27,7 +27,7 @@ def print_init(name, git_info_file):
     with open(git_info_file, "r") as file:
         for line in file:
             key, value = line.strip().split("=")
-            line = f"commit {key}: {value}"
+            line = f"{key}: {value}"
             lines.append(line)
             if len(line) > l_len:
                 l_len = len(line)
