@@ -36,31 +36,29 @@ if __name__ == '__main__':
         timeout=config.influxdb.timeout
     )
     filter_handler = ew_lib.filter.FilterHandler()
+    kafka_filter_consumer_config = {
+        "metadata.broker.list": config.kafka.metadata_broker_list,
+        "group.id": f"{config.kafka_filter_client.consumer_group_id}_{config.kafka.consumer_group_id_postfix}",
+        "auto.offset.reset": "earliest",
+    }
+    util.logger.debug(f"kafka filter consumer config: {kafka_filter_consumer_config}")
     kafka_filter_client = ew_lib.clients.kafka.KafkaFilterClient(
-        kafka_consumer=confluent_kafka.Consumer(
-            {
-                "metadata.broker.list": config.kafka.metadata_broker_list,
-                "group.id": f"{config.kafka_filter_client.consumer_group_id}_{config.kafka.consumer_group_id_postfix}",
-                "auto.offset.reset": "earliest",
-            },
-            logger=util.logger
-        ),
+        kafka_consumer=confluent_kafka.Consumer(kafka_filter_consumer_config, logger=util.logger),
         filter_handler=filter_handler,
         filter_topic=config.kafka_filter_client.filter_topic,
         poll_timeout=config.kafka_filter_client.poll_timeout,
         time_format=config.kafka_filter_client.time_format,
         utc=config.kafka_filter_client.utc
     )
-    kafka_data_consumer = confluent_kafka.Consumer(
-        {
-            "metadata.broker.list": config.kafka.metadata_broker_list,
-            "group.id": f"{config.kafka_data_client.consumer_group_id}_{config.kafka.consumer_group_id_postfix}",
-            "auto.offset.reset": "earliest",
-            "partition.assignment.strategy": "cooperative-sticky",
-            "enable.auto.offset.store": False
-        },
-        logger=util.logger
-    )
+    kafka_data_consumer_config = {
+        "metadata.broker.list": config.kafka.metadata_broker_list,
+        "group.id": f"{config.kafka_data_client.consumer_group_id}_{config.kafka.consumer_group_id_postfix}",
+        "auto.offset.reset": "earliest",
+        "partition.assignment.strategy": "cooperative-sticky",
+        "enable.auto.offset.store": False
+    }
+    util.logger.debug(f"kafka data consumer config: {kafka_data_consumer_config}")
+    kafka_data_consumer = confluent_kafka.Consumer(kafka_data_consumer_config, logger=util.logger)
     kafka_data_client = ew_lib.clients.kafka.KafkaDataClient(
         kafka_consumer=kafka_data_consumer,
         filter_handler=filter_handler,
