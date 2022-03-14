@@ -17,23 +17,3 @@
 from .config import *
 from .logger import *
 from .watchdog import *
-import threading
-
-
-class SyncEvent:
-    def __init__(self):
-        self.__event = threading.Event()
-        self.err = None
-
-    def set(self, err):
-        self.err = err
-        self.__event.set()
-
-    def wait(self, timeout=None):
-        return self.__event.wait(timeout=timeout)
-
-    def is_set(self):
-        return self.__event.is_set()
-
-    def clear(self):
-        self.__event.clear()
