@@ -17,8 +17,7 @@
     "export_id": "export-1",
     "export_args": {
       "db_name": "db_1",
-      "time_key": "time",
-      "time_format": ""
+      "time_key": "time"
     }
   },
   {
@@ -40,7 +39,6 @@
     "export_args": {
       "db_name": "db_1",
       "time_key": "time",
-      "time_format": "",
       "time_precision": "ms"
     }
   },
@@ -60,8 +58,7 @@
     "export_id": "export-3",
     "export_args": {
       "db_name": "db_1",
-      "time_key": "time",
-      "time_format": ""
+      "time_key": "time"
     }
   },
   {
@@ -82,8 +79,7 @@
     "export_id": "export-4",
     "export_args": {
       "db_name": "db_2",
-      "time_key": "time",
-      "time_format": ""
+      "time_key": "time"
     }
   },
   {
