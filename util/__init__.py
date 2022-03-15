@@ -17,7 +17,6 @@
 from .config import *
 from .logger import *
 from .watchdog import *
-import sevm
 import math
 
 
@@ -40,13 +39,3 @@ def print_init(name, git_info_file):
     for line in lines:
         print(line)
     print("*" * l_len)
-
-
-def config_to_dict(config):
-    items = dict()
-    for key, value in config.__dict__.items():
-        if isinstance(value, sevm.Config):
-            items[key] = config_to_dict(config=value)
-        else:
-            items[key] = value
-    return items
