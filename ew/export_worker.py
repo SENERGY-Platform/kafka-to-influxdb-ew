@@ -52,7 +52,7 @@ def convert_timestamp(timestamp: str, fmt: str, utc: bool):
         return f"{time_obj.isoformat()}"
 
 
-def gen_point(export_id, export_data, export_extra, time_key: str, time_format: str, utc: bool) -> typing.Dict:
+def gen_point(export_id, export_data, export_extra, time_key: typing.Optional[str] = None, time_format: typing.Optional[str] = None, utc: typing.Optional[bool] = None) -> typing.Dict:
     point = {
         InfluxDBPoint.measurement: export_id,
         InfluxDBPoint.fields: export_data
