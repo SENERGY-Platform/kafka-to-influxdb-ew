@@ -48,7 +48,8 @@ if __name__ == '__main__':
         filter_topic=config.kafka_filter_client.filter_topic,
         poll_timeout=config.kafka_filter_client.poll_timeout,
         time_format=config.kafka_filter_client.time_format,
-        utc=config.kafka_filter_client.utc
+        utc=config.kafka_filter_client.utc,
+        logger=util.logger
     )
     kafka_data_consumer_config = {
         "metadata.broker.list": config.kafka.metadata_broker_list,
@@ -64,7 +65,8 @@ if __name__ == '__main__':
         filter_handler=filter_handler,
         subscribe_interval=config.kafka_data_client.subscribe_interval,
         handle_offsets=True,
-        kafka_msg_err_ignore=[confluent_kafka.KafkaError.UNKNOWN_TOPIC_OR_PART]
+        kafka_msg_err_ignore=[confluent_kafka.KafkaError.UNKNOWN_TOPIC_OR_PART],
+        logger=util.logger
     )
     export_worker = ew.ExportWorker(
         influxdb_client=influxdb_client,
