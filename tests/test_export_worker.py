@@ -41,7 +41,8 @@ class TestInfluxDBWorker(unittest.TestCase):
         test_kafka_consumer = TestKafkaConsumer(data=data, msg_error=msg_error)
         kafka_data_client = ew_lib.clients.kafka.KafkaDataClient(
             kafka_consumer=test_kafka_consumer,
-            filter_handler=filter_handler
+            filter_handler=filter_handler,
+            logger=logger
         )
         export_worker = ew.ExportWorker(
             influxdb_client=influxdb_client,
