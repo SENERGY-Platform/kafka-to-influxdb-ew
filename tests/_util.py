@@ -22,11 +22,8 @@ import time
 import logging
 
 
-ew_lib_logger = logging.getLogger("ew-lib")
-ew_lib_logger.disabled = True
-
-ew_logger = logging.getLogger("ew")
-ew_logger.disabled = True
+logger = logging.getLogger("ew")
+logger.disabled = True
 
 
 class TestKafkaError:
