@@ -61,8 +61,9 @@ def gen_point(export_id, export_data, export_extra, time_key: typing.Optional[st
         if utc is None:
             utc = True
         point[InfluxDBPoint.time] = convert_timestamp(timestamp=export_extra[time_key], fmt=time_format, utc=utc) if time_format else export_extra[time_key]
-        del export_extra[time_key]
-    if export_extra:
+    if len(export_extra) > 1 and time_key:
+        point[InfluxDBPoint.tags] = {key: val for key, val in export_extra.items() if key != time_key}
+    elif export_extra and not time_key:
         point[InfluxDBPoint.tags] = export_extra
     return point
 
