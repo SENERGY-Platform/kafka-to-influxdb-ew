@@ -1,3 +1,3 @@
-git+https://github.com/SENERGY-Platform/export-worker-lib@0.18.2
+git+https://github.com/SENERGY-Platform/export-worker-lib@0.18.3
 git+https://github.com/y-du/simple-env-var-manager.git@2.3.0
 influxdb<6
