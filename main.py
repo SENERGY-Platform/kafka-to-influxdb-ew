@@ -63,7 +63,8 @@ if __name__ == '__main__':
         kafka_consumer=kafka_data_consumer,
         filter_handler=filter_handler,
         subscribe_interval=config.kafka_data_client.subscribe_interval,
-        handle_offsets=True
+        handle_offsets=True,
+        kafka_msg_err_ignore=[confluent_kafka.KafkaError.UNKNOWN_TOPIC_OR_PART]
     )
     export_worker = ew.ExportWorker(
         influxdb_client=influxdb_client,
