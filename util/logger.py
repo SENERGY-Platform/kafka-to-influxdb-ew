@@ -39,12 +39,8 @@ logger = logging.getLogger("ew")
 logger.propagate = False
 logger.addHandler(handler)
 
-ew_lib_logger = logging.getLogger('ew-lib')
-ew_lib_logger.addHandler(handler)
-
 
 def init_logger(level):
     if level not in logging_levels.keys():
         raise LoggerError(level)
     logger.setLevel(logging_levels[level])
-    ew_lib_logger.setLevel(logging_levels[level])
