@@ -31,7 +31,6 @@ class Watchdog:
         self.__shutdown_signals = list()
         self.__start_delay = None
         self.__thread = threading.Thread(target=self.__monitor, daemon=True)
-        self.__event = threading.Event()
         self.__sleeper = threading.Event()
         self.__signal = None
         self.__stop = False
@@ -50,7 +49,6 @@ class Watchdog:
                         func()
                     except Exception as ex:
                         logger.error(f"{Watchdog.__log_err_msg_prefix}: calling {func} failed: {ex}")
-            self.__event.set()
 
     def __monitor(self):
         self.__sleeper.wait(timeout=self.__start_delay)
@@ -68,8 +66,6 @@ class Watchdog:
                     except Exception as ex:
                         logger.error(f"{Watchdog.__log_err_msg_prefix}: calling {func} failed: {ex}")
                 self.__sleeper.wait(self.__monitor_delay)
-        self.__event.wait()
-        logger.info(f"{Watchdog.__log_msg_prefix}: shutdown complete")
 
     def register_shutdown_signals(self, sig_nums: typing.List[int]):
         for num in sig_nums:
