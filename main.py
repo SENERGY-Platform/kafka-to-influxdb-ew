@@ -79,7 +79,8 @@ if __name__ == '__main__':
     kafka_filter_client.set_on_sync(callable=export_worker.set_filter_sync, sync_delay=config.kafka_filter_client.sync_delay)
     watchdog = util.Watchdog(
         monitor_callables=[export_worker.is_alive, kafka_filter_client.is_alive, kafka_data_client.is_alive],
-        shutdown_callables=[export_worker.stop, influxdb_client.close, kafka_data_client.stop, kafka_data_consumer.close, kafka_filter_client.stop],
+        shutdown_callables=[export_worker.stop, kafka_data_client.stop, kafka_filter_client.stop],
+        join_callables=[kafka_data_client.join, kafka_filter_client.join, influxdb_client.close, kafka_data_consumer.close, kafka_filter_consumer.close],
         shutdown_signals=[signal.SIGTERM, signal.SIGINT, signal.SIGABRT],
         monitor_delay=config.watchdog.monitor_delay
     )
