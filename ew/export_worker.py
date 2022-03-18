@@ -81,6 +81,7 @@ class ExportWorker:
         self.__get_data_limit = get_data_limit
         self.__filter_sync_err = False
         self.__stop = False
+        self.__stopped = False
 
     def _gen_points_batch(self, exports_batch: typing.List):
         points_batch = dict()
@@ -133,7 +134,7 @@ class ExportWorker:
         self.__stop = True
 
     def is_alive(self):
-        return not self.__stop
+        return not self.__stopped
 
     def run(self):
         util.logger.info(f"{ExportWorker.__log_msg_prefix}: waiting for filter synchronisation ...")
@@ -158,3 +159,4 @@ class ExportWorker:
                 except Exception as ex:
                     util.logger.critical(f"{ExportWorker.__log_err_msg_prefix}: consuming exports failed: {ex}")
                     self.__stop = True
+        self.__stopped = True
