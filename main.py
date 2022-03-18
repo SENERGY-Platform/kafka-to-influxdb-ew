@@ -42,8 +42,9 @@ if __name__ == '__main__':
         "auto.offset.reset": "earliest",
     }
     util.logger.debug(f"kafka filter consumer config: {kafka_filter_consumer_config}")
+    kafka_filter_consumer = confluent_kafka.Consumer(kafka_filter_consumer_config, logger=util.logger)
     kafka_filter_client = ew_lib.clients.kafka.KafkaFilterClient(
-        kafka_consumer=confluent_kafka.Consumer(kafka_filter_consumer_config, logger=util.logger),
+        kafka_consumer=kafka_filter_consumer,
         filter_handler=filter_handler,
         filter_topic=config.kafka_filter_client.filter_topic,
         poll_timeout=config.kafka_filter_client.poll_timeout,
@@ -82,8 +83,8 @@ if __name__ == '__main__':
         shutdown_signals=[signal.SIGTERM, signal.SIGINT, signal.SIGABRT],
         monitor_delay=config.watchdog.monitor_delay
     )
+    watchdog.start(delay=config.watchdog.start_delay)
     kafka_filter_client.start()
     kafka_data_client.start()
-    watchdog.start(delay=config.watchdog.start_delay)
     export_worker.run()
     watchdog.join()
