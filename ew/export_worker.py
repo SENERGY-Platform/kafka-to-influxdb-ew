@@ -83,10 +83,10 @@ class ExportWorker:
         self.__stop = False
         self.__stopped = False
 
-    def _gen_points_batch(self, exports_batch: typing.List):
+    def _gen_points_batch(self, exports_batch: typing.List[ew_lib.filter.FilterResult]):
         points_batch = dict()
-        for export in exports_batch:
-            for export_id in export[2]:
+        for result in exports_batch:
+            for export_id in result.exports:
                 try:
                     export_args = self.__filter_handler.get_export_args(export_id=export_id)
                     db_name = export_args[ExportArgs.db_name]
@@ -97,8 +97,8 @@ class ExportWorker:
                         points_batch[db_name][time_precision] = list()
                     points_batch[db_name][time_precision].append(gen_point(
                         export_id=export_id,
-                        export_data=export[0],
-                        export_extra=export[1],
+                        export_data=result.data,
+                        export_extra=result.extra,
                         time_key=export_args.get(ExportArgs.time_key),
                         time_format=export_args.get(ExportArgs.time_format),
                         utc=export_args.get(ExportArgs.utc)
