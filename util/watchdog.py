@@ -24,9 +24,10 @@ class Watchdog:
     __log_msg_prefix = "watchdog"
     __log_err_msg_prefix = f"{__log_msg_prefix} error"
 
-    def __init__(self, monitor_callables: typing.Optional[typing.List[typing.Callable[..., bool]]] = None, shutdown_callables: typing.Optional[typing.List[typing.Callable]] = None, shutdown_signals: typing.Optional[typing.List[int]] = None, monitor_delay: int = 2):
+    def __init__(self, monitor_callables: typing.Optional[typing.List[typing.Callable[..., bool]]] = None, shutdown_callables: typing.Optional[typing.List[typing.Callable]] = None, join_callables: typing.Optional[typing.List[typing.Callable]] = None, shutdown_signals: typing.Optional[typing.List[int]] = None, monitor_delay: int = 2):
         self.__monitor_callables = monitor_callables
         self.__shutdown_callables = shutdown_callables
+        self.__join_callables = join_callables
         self.__monitor_delay = monitor_delay
         self.__shutdown_signals = list()
         self.__start_delay = None
@@ -91,3 +92,9 @@ class Watchdog:
 
     def join(self):
         self.__thread.join()
+        for func in self.__join_callables:
+            try:
+                func()
+            except Exception as ex:
+                logger.error(f"{Watchdog.__log_err_msg_prefix}: calling {func} failed: {ex}")
+        logger.info(f"{Watchdog.__log_msg_prefix}: shutdown complete")
