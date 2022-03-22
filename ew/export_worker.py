@@ -41,8 +41,14 @@ class InfluxDBPoint:
 
 
 class WritePointsError(Exception):
-    def __init__(self, arg):
-        super().__init__(f"writing {arg[0]} points to '{arg[1]}' failed: {arg[2]}")
+    def __init__(self, points, db_name, ex):
+        pts = dict()
+        for point in points:
+            if point[InfluxDBPoint.measurement] not in pts:
+                pts[point[InfluxDBPoint.measurement]] = 1
+            else:
+                pts[point[InfluxDBPoint.measurement]] += 1
+        super().__init__(f"writing points failed: reason={util.get_exception_str(ex)} database={db_name} points={pts}")
 
 
 class ValidateFilterError(Exception):
@@ -126,7 +132,7 @@ class ExportWorker:
                         utc=export_args.get(ExportArgs.utc)
                     ))
                 except Exception as ex:
-                    util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: generating points for '{export_id}' failed: {ex}")
+                    util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: generating points failed: reason={util.get_exception_str(ex)} export_id={export_id}")
         return points_batch
 
     def _write_points_batch(self, points_batch: typing.Dict):
@@ -144,9 +150,9 @@ class ExportWorker:
                         if ex.code == 404:
                             self.__influxdb_client.create_database(dbname=db_name)
                         else:
-                            raise WritePointsError((len(points), db_name, ex))
+                            raise WritePointsError(points, db_name, ex)
                     except Exception as ex:
-                        raise WritePointsError((len(points), db_name, ex))
+                        raise WritePointsError(points, db_name, ex)
 
     def set_filter_sync(self, err: bool):
         self.__filter_sync_err = err
@@ -171,7 +177,7 @@ class ExportWorker:
                     )
                     if exports_batch:
                         if exports_batch[1]:
-                            raise RuntimeError([ex.code for ex in exports_batch[1]])
+                            raise RuntimeError([str(ex) for ex in exports_batch[1]])
                         if exports_batch[0]:
                             self._write_points_batch(points_batch=self._gen_points_batch(exports_batch=exports_batch[0]))
                             self.__data_client.store_offsets()
@@ -179,6 +185,6 @@ class ExportWorker:
                     util.logger.critical(f"{ExportWorker.__log_err_msg_prefix}: {ex}")
                     self.__stop = True
                 except Exception as ex:
-                    util.logger.critical(f"{ExportWorker.__log_err_msg_prefix}: consuming exports failed: {ex}")
+                    util.logger.critical(f"{ExportWorker.__log_err_msg_prefix}: consuming exports failed: reason={util.get_exception_str(ex)}")
                     self.__stop = True
         self.__stopped = True
