@@ -65,7 +65,7 @@ def validate_filter(filter: dict):
         if ExportArgs.time_key in filter["args"]:
             if not filter['args'][ExportArgs.time_key]:
                 return False
-            if f"{filter['args'][ExportArgs.time_key]:string:extra}" not in filter["mappings"]:
+            if f"{filter['args'][ExportArgs.time_key]}:string:extra" not in filter["mappings"]:
                 return False
         return True
     except Exception as ex:
