@@ -35,7 +35,6 @@ if __name__ == '__main__':
         retries=config.influxdb.retries,
         timeout=config.influxdb.timeout
     )
-    filter_handler = ew_lib.filter.FilterHandler()
     kafka_filter_consumer_config = {
         "metadata.broker.list": config.kafka.metadata_broker_list,
         "group.id": f"{config.kafka_filter_client.consumer_group_id}_{config.kafka.consumer_group_id_postfix}",
@@ -45,7 +44,6 @@ if __name__ == '__main__':
     kafka_filter_consumer = confluent_kafka.Consumer(kafka_filter_consumer_config, logger=util.logger)
     kafka_filter_client = ew_lib.clients.kafka.KafkaFilterClient(
         kafka_consumer=kafka_filter_consumer,
-        filter_handler=filter_handler,
         filter_topic=config.kafka_filter_client.filter_topic,
         poll_timeout=config.kafka_filter_client.poll_timeout,
         time_format=config.kafka_filter_client.time_format,
