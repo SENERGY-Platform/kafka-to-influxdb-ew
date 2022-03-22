@@ -14,7 +14,7 @@
    limitations under the License.
 """
 
-__all__ = ("ExportWorker",)
+__all__ = ("ExportWorker", "validate_filter")
 
 import util
 import ew_lib
@@ -43,6 +43,27 @@ class InfluxDBPoint:
 class WritePointsError(Exception):
     def __init__(self, arg):
         super().__init__(f"writing {arg[0]} points to '{arg[1]}' failed: {arg[2]}")
+
+
+class ValidateFilterError(Exception):
+    def __init__(self, ex):
+        super().__init__(util.get_exception_str(ex))
+
+
+def validate_filter(filter: dict):
+    try:
+        if ExportArgs.db_name not in filter["args"]:
+            return False
+        if not filter["args"][ExportArgs.db_name]:
+            return False
+        if ExportArgs.time_key in filter["args"]:
+            if not filter['args'][ExportArgs.time_key]:
+                return False
+            if f"{filter['args'][ExportArgs.time_key]:string:extra}" not in filter["mappings"]:
+                return False
+        return True
+    except Exception as ex:
+        raise ValidateFilterError(ex)
 
 
 def convert_timestamp(timestamp: str, fmt: str, utc: bool):

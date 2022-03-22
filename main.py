@@ -48,6 +48,7 @@ if __name__ == '__main__':
         poll_timeout=config.kafka_filter_client.poll_timeout,
         time_format=config.kafka_filter_client.time_format,
         utc=config.kafka_filter_client.utc,
+        validator=ew.validate_filter,
         logger=util.logger
     )
     kafka_data_consumer_config = {
