@@ -42,7 +42,7 @@ if __name__ == '__main__':
     }
     util.logger.debug(f"kafka filter consumer config: {kafka_filter_consumer_config}")
     kafka_filter_consumer = confluent_kafka.Consumer(kafka_filter_consumer_config, logger=util.logger)
-    kafka_filter_client = ew_lib.clients.kafka.KafkaFilterClient(
+    filter_client = ew_lib.FilterClient(
         kafka_consumer=kafka_filter_consumer,
         filter_topic=config.kafka_filter_client.filter_topic,
         poll_timeout=config.kafka_filter_client.poll_timeout,
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     }
     util.logger.debug(f"kafka data consumer config: {kafka_data_consumer_config}")
     kafka_data_consumer = confluent_kafka.Consumer(kafka_data_consumer_config, logger=util.logger)
-    kafka_data_client = ew_lib.clients.kafka.KafkaDataClient(
+    data_client = ew_lib.DataClient(
         kafka_consumer=kafka_data_consumer,
         filter_handler=filter_handler,
         subscribe_interval=config.kafka_data_client.subscribe_interval,
@@ -69,21 +69,21 @@ if __name__ == '__main__':
     )
     export_worker = ew.ExportWorker(
         influxdb_client=influxdb_client,
-        kafka_data_client=kafka_data_client,
+        kafka_data_client=data_client,
         filter_handler=filter_handler,
         get_data_timeout=config.get_data_timeout,
         get_data_limit=config.get_data_limit
     )
-    kafka_filter_client.set_on_sync(callable=export_worker.set_filter_sync, sync_delay=config.kafka_filter_client.sync_delay)
+    filter_client.set_on_sync(callable=export_worker.set_filter_sync, sync_delay=config.kafka_filter_client.sync_delay)
     watchdog = util.Watchdog(
-        monitor_callables=[export_worker.is_alive, kafka_filter_client.is_alive, kafka_data_client.is_alive],
-        shutdown_callables=[export_worker.stop, kafka_data_client.stop, kafka_filter_client.stop],
-        join_callables=[kafka_data_client.join, kafka_filter_client.join, influxdb_client.close, kafka_data_consumer.close, kafka_filter_consumer.close],
+        monitor_callables=[export_worker.is_alive, filter_client.is_alive, data_client.is_alive],
+        shutdown_callables=[export_worker.stop, data_client.stop, filter_client.stop],
+        join_callables=[data_client.join, filter_client.join, influxdb_client.close, kafka_data_consumer.close, kafka_filter_consumer.close],
         shutdown_signals=[signal.SIGTERM, signal.SIGINT, signal.SIGABRT],
         monitor_delay=config.watchdog.monitor_delay
     )
     watchdog.start(delay=config.watchdog.start_delay)
-    kafka_filter_client.start()
-    kafka_data_client.start()
+    filter_client.start()
+    data_client.start()
     export_worker.run()
     watchdog.join()
