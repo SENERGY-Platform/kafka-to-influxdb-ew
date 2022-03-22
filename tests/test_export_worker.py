@@ -46,7 +46,7 @@ class TestInfluxDBWorker(unittest.TestCase):
         )
         export_worker = ew.ExportWorker(
             influxdb_client=influxdb_client,
-            kafka_data_client=kafka_data_client,
+            data_client=kafka_data_client,
             filter_handler=filter_handler,
         )
         for filter in filters:

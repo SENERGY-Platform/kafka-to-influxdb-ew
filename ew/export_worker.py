@@ -18,6 +18,7 @@ __all__ = ("ExportWorker",)
 
 import util
 import ew_lib
+import mf_lib
 import influxdb
 import threading
 import typing
@@ -72,9 +73,9 @@ class ExportWorker:
     __log_msg_prefix = "export worker"
     __log_err_msg_prefix = f"{__log_msg_prefix} error"
 
-    def __init__(self, influxdb_client: influxdb.InfluxDBClient, kafka_data_client: ew_lib.clients.kafka.KafkaDataClient, filter_client: ew_lib.FilterClient, get_data_timeout: float = 5.0, get_data_limit: int = 10000):
+    def __init__(self, influxdb_client: influxdb.InfluxDBClient, data_client: ew_lib.DataClient, filter_client: ew_lib.FilterClient, get_data_timeout: float = 5.0, get_data_limit: int = 10000):
         self.__influxdb_client = influxdb_client
-        self.__kafka_data_client = kafka_data_client
+        self.__data_client = data_client
         self.__filter_client = filter_client
         self.__filter_sync_event = threading.Event()
         self.__get_data_timeout = get_data_timeout
@@ -83,10 +84,10 @@ class ExportWorker:
         self.__stop = False
         self.__stopped = False
 
-    def _gen_points_batch(self, exports_batch: typing.List[ew_lib.filter.FilterResult]):
+    def _gen_points_batch(self, exports_batch: typing.List[mf_lib.FilterResult]):
         points_batch = dict()
         for result in exports_batch:
-            for export_id in result.exports:
+            for export_id in result.filter_ids:
                 try:
                     export_args = self.__filter_client.filter_handler.get_export_args(export_id=export_id)
                     db_name = export_args[ExportArgs.db_name]
@@ -143,7 +144,7 @@ class ExportWorker:
             util.logger.info(f"{ExportWorker.__log_msg_prefix}: starting export consumption ...")
             while not self.__stop:
                 try:
-                    exports_batch = self.__kafka_data_client.get_exports_batch(
+                    exports_batch = self.__data_client.get_exports_batch(
                         timeout=self.__get_data_timeout,
                         limit=self.__get_data_limit,
                     )
@@ -152,7 +153,7 @@ class ExportWorker:
                             raise RuntimeError([ex.code for ex in exports_batch[1]])
                         if exports_batch[0]:
                             self._write_points_batch(points_batch=self._gen_points_batch(exports_batch=exports_batch[0]))
-                            self.__kafka_data_client.store_offsets()
+                            self.__data_client.store_offsets()
                 except WritePointsError as ex:
                     util.logger.critical(f"{ExportWorker.__log_err_msg_prefix}: {ex}")
                     self.__stop = True
