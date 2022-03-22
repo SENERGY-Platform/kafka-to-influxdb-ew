@@ -61,7 +61,7 @@ if __name__ == '__main__':
     kafka_data_consumer = confluent_kafka.Consumer(kafka_data_consumer_config, logger=util.logger)
     data_client = ew_lib.DataClient(
         kafka_consumer=kafka_data_consumer,
-        filter_handler=filter_handler,
+        filter_client=filter_client,
         subscribe_interval=config.kafka_data_client.subscribe_interval,
         handle_offsets=True,
         kafka_msg_err_ignore=[confluent_kafka.KafkaError.UNKNOWN_TOPIC_OR_PART],
