@@ -70,7 +70,7 @@ if __name__ == '__main__':
     export_worker = ew.ExportWorker(
         influxdb_client=influxdb_client,
         data_client=data_client,
-        filter_handler=filter_handler,
+        filter_client=filter_client,
         get_data_timeout=config.get_data_timeout,
         get_data_limit=config.get_data_limit
     )
