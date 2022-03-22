@@ -72,10 +72,10 @@ class ExportWorker:
     __log_msg_prefix = "export worker"
     __log_err_msg_prefix = f"{__log_msg_prefix} error"
 
-    def __init__(self, influxdb_client: influxdb.InfluxDBClient, kafka_data_client: ew_lib.clients.kafka.KafkaDataClient, filter_handler: ew_lib.filter.FilterHandler, get_data_timeout: float = 5.0, get_data_limit: int = 10000):
+    def __init__(self, influxdb_client: influxdb.InfluxDBClient, kafka_data_client: ew_lib.clients.kafka.KafkaDataClient, filter_client: ew_lib.FilterClient, get_data_timeout: float = 5.0, get_data_limit: int = 10000):
         self.__influxdb_client = influxdb_client
         self.__kafka_data_client = kafka_data_client
-        self.__filter_handler = filter_handler
+        self.__filter_client = filter_client
         self.__filter_sync_event = threading.Event()
         self.__get_data_timeout = get_data_timeout
         self.__get_data_limit = get_data_limit
@@ -88,7 +88,7 @@ class ExportWorker:
         for result in exports_batch:
             for export_id in result.exports:
                 try:
-                    export_args = self.__filter_handler.get_export_args(export_id=export_id)
+                    export_args = self.__filter_client.filter_handler.get_export_args(export_id=export_id)
                     db_name = export_args[ExportArgs.db_name]
                     time_precision = export_args.get(ExportArgs.time_precision)
                     if db_name not in points_batch:
