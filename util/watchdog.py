@@ -14,7 +14,7 @@
    limitations under the License.
 """
 
-from .logger import logger
+import util
 import threading
 import typing
 import signal
@@ -42,14 +42,14 @@ class Watchdog:
         if self.__signal is None:
             self.__signal = sig_num
             self.__sleeper.set()
-            logger.warning(f"{Watchdog.__log_msg_prefix}: caught '{signal.Signals(sig_num).name}'")
+            util.logger.warning(f"{Watchdog.__log_msg_prefix}: caught '{signal.Signals(sig_num).name}'")
             if self.__shutdown_callables:
-                logger.info(f"{Watchdog.__log_msg_prefix}: initiating shutdown ...")
+                util.logger.info(f"{Watchdog.__log_msg_prefix}: initiating shutdown ...")
                 for func in self.__shutdown_callables:
                     try:
                         func()
                     except Exception as ex:
-                        logger.error(f"{Watchdog.__log_err_msg_prefix}: calling {func} failed: {ex}")
+                        util.logger.error(f"{Watchdog.__log_err_msg_prefix}: executing shutdown callable failed: reason={util.get_exception_str(ex)} callable={func}")
 
     def __monitor(self):
         self.__sleeper.wait(timeout=self.__start_delay)
@@ -65,7 +65,7 @@ class Watchdog:
                             self.__handle_shutdown(signal.SIGABRT, None)
                             break
                     except Exception as ex:
-                        logger.error(f"{Watchdog.__log_err_msg_prefix}: calling {func} failed: {ex}")
+                        util.logger.error(f"{Watchdog.__log_err_msg_prefix}: executing monitor callable failed: reason={util.get_exception_str(ex)} callable={func}")
                 self.__sleeper.wait(self.__monitor_delay)
 
     def register_shutdown_signals(self, sig_nums: typing.List[int]):
@@ -96,5 +96,5 @@ class Watchdog:
             try:
                 func()
             except Exception as ex:
-                logger.error(f"{Watchdog.__log_err_msg_prefix}: calling {func} failed: {ex}")
-        logger.info(f"{Watchdog.__log_msg_prefix}: shutdown complete")
+                util.logger.error(f"{Watchdog.__log_err_msg_prefix}: executing join callable failed: reason={util.get_exception_str(ex)} callable={func}")
+        util.logger.info(f"{Watchdog.__log_msg_prefix}: shutdown complete")
