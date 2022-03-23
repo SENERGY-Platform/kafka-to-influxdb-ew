@@ -1,104 +1,124 @@
 [
   {
-    "source": "test",
-    "identifiers": [
-      {
-        "key": "id_a",
-        "value": "a-1"
+    "method": "put",
+    "payload": {
+      "source": "test",
+      "identifiers": [
+        {
+          "key": "id_a",
+          "value": "a-1"
+        }
+      ],
+      "mappings": {
+        "int_val:int:data": "val_int",
+        "float_val:float:data": "val_float",
+        "str_val:string:data": "val_str",
+        "bool_val:bool:data": "val_bool",
+        "time:string:extra": "timestamp"
+      },
+      "id": "export-1",
+      "args": {
+        "db_name": "db_1",
+        "time_key": "time"
       }
-    ],
-    "mappings": {
-      "int_val:int:data": "val_int",
-      "float_val:float:data": "val_float",
-      "str_val:string:data": "val_str",
-      "bool_val:bool:data": "val_bool",
-      "time:string:extra": "timestamp"
     },
-    "export_id": "export-1",
-    "export_args": {
-      "db_name": "db_1",
-      "time_key": "time"
-    }
+    "timestamp": 1646145513
   },
   {
-    "source": "test",
-    "identifiers": [
-      {
-        "key": "id_a",
-        "value": "a-1"
+    "method": "put",
+    "payload": {
+      "source": "test",
+      "identifiers": [
+        {
+          "key": "id_a",
+          "value": "a-1"
+        }
+      ],
+      "mappings": {
+        "val_int:int:data": "val_int",
+        "val_float:float:data": "val_float",
+        "val_str:string:data": "val_str",
+        "val_bool:bool:data": "val_bool",
+        "time:string:extra": "timestamp"
+      },
+      "id": "export-2",
+      "args": {
+        "db_name": "db_1",
+        "time_key": "time",
+        "time_precision": "ms"
       }
-    ],
-    "mappings": {
-      "val_int:int:data": "val_int",
-      "val_float:float:data": "val_float",
-      "val_str:string:data": "val_str",
-      "val_bool:bool:data": "val_bool",
-      "time:string:extra": "timestamp"
     },
-    "export_id": "export-2",
-    "export_args": {
-      "db_name": "db_1",
-      "time_key": "time",
-      "time_precision": "ms"
-    }
+    "timestamp": 1646145514
   },
   {
-    "source": "test",
-    "identifiers": [
-      {
-        "key": "id_a",
-        "value": "a-1"
+    "method": "put",
+    "payload": {
+      "source": "test",
+      "identifiers": [
+        {
+          "key": "id_a",
+          "value": "a-1"
+        }
+      ],
+      "mappings": {
+        "int_val:int:data": "val_int",
+        "float_val:float:data": "val_float",
+        "time:string:extra": "timestamp"
+      },
+      "id": "export-3",
+      "args": {
+        "db_name": "db_1",
+        "time_key": "time"
       }
-    ],
-    "mappings": {
-      "int_val:int:data": "val_int",
-      "float_val:float:data": "val_float",
-      "time:string:extra": "timestamp"
     },
-    "export_id": "export-3",
-    "export_args": {
-      "db_name": "db_1",
-      "time_key": "time"
-    }
+    "timestamp": 1646145515
   },
   {
-    "source": "test",
-    "identifiers": [
-      {
-        "key": "id_a",
-        "value": "a-1"
+    "method": "put",
+    "payload": {
+      "source": "test",
+      "identifiers": [
+        {
+          "key": "id_a",
+          "value": "a-1"
+        }
+      ],
+      "mappings": {
+        "int_val:int:data": "val_int",
+        "float_val:float:data": "val_float",
+        "str_val:string:extra": "val_str",
+        "bool_val:bool:data": "val_bool",
+        "time:string:extra": "timestamp"
+      },
+      "id": "export-4",
+      "args": {
+        "db_name": "db_2",
+        "time_key": "time"
       }
-    ],
-    "mappings": {
-      "int_val:int:data": "val_int",
-      "float_val:float:data": "val_float",
-      "str_val:string:extra": "val_str",
-      "bool_val:bool:data": "val_bool",
-      "time:string:extra": "timestamp"
     },
-    "export_id": "export-4",
-    "export_args": {
-      "db_name": "db_2",
-      "time_key": "time"
-    }
+    "timestamp": 1646145516
   },
   {
-    "source": "test",
-    "identifiers": [
-      {
-        "key": "id_c",
-        "value": "c-1"
+    "method": "put",
+    "payload": {
+      "source": "test",
+      "identifiers": [
+        {
+          "key": "id_c",
+          "value": "c-1"
+        }
+      ],
+      "mappings": {
+        "val:int:data": "val",
+        "time:string:extra": "timestamp"
+      },
+      "id": "export-5",
+      "args": {
+        "db_name": "db_2",
+        "time_key": "time",
+        "time_format": "%A, %d-%b-%y %H:%M:%S UTC"
       }
-    ],
-    "mappings": {
-      "val:int:data": "val",
-      "time:string:extra": "timestamp"
     },
-    "export_id": "export-5",
-    "export_args": {
-      "db_name": "db_2",
-      "time_key": "time",
-      "time_format": "%A, %d-%b-%y %H:%M:%S UTC"
-    }
+    "timestamp": 1646145517
   }
 ]
