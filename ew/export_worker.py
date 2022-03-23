@@ -40,6 +40,9 @@ class InfluxDBPoint:
     time = "time"
 
 
+influxdb_time_precision_values = ("s", "m", "ms", "u")
+
+
 class WritePointsError(Exception):
     def __init__(self, points, db_name, ex):
         pts = dict()
@@ -67,6 +70,8 @@ def validate_filter(filter: dict):
                 return False
             if f"{filter['args'][ExportArgs.time_key]}:string:extra" not in filter["mappings"]:
                 return False
+        if ExportArgs.time_precision in filter["args"] and filter["args"][ExportArgs.time_precision] not in influxdb_time_precision_values:
+            return False
         return True
     except Exception as ex:
         raise ValidateFilterError(ex)
