@@ -116,7 +116,7 @@ class ExportWorker:
         for result in exports_batch:
             for export_id in result.filter_ids:
                 try:
-                    export_args = self.__filter_client.handler.get_filter_args(filter_id=export_id)
+                    export_args = self.__filter_client.handler.get_filter_args(id=export_id)
                     db_name = export_args[ExportArgs.db_name]
                     time_precision = export_args.get(ExportArgs.time_precision)
                     if db_name not in points_batch:
