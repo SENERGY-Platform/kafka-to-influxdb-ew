@@ -17,6 +17,7 @@
 import util
 import ew
 import ew_lib
+import cncr_wdg
 import confluent_kafka
 import influxdb
 import signal
@@ -76,12 +77,13 @@ if __name__ == '__main__':
         get_data_limit=config.get_data_limit
     )
     filter_client.set_on_sync(callable=export_worker.set_filter_sync, sync_delay=config.kafka_filter_client.sync_delay)
-    watchdog = util.Watchdog(
+    watchdog = cncr_wdg.Watchdog(
         monitor_callables=[export_worker.is_alive, filter_client.is_alive, data_client.is_alive],
         shutdown_callables=[export_worker.stop, data_client.stop, filter_client.stop],
         join_callables=[data_client.join, filter_client.join, influxdb_client.close, kafka_data_consumer.close, kafka_filter_consumer.close],
         shutdown_signals=[signal.SIGTERM, signal.SIGINT, signal.SIGABRT],
-        monitor_delay=config.watchdog.monitor_delay
+        monitor_delay=config.watchdog.monitor_delay,
+        logger=util.logger
     )
     watchdog.start(delay=config.watchdog.start_delay)
     filter_client.start()

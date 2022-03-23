@@ -16,7 +16,6 @@
 
 from .config import *
 from .logger import *
-from .watchdog import *
 import math
 import traceback
 
