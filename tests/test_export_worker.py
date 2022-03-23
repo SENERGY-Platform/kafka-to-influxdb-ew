@@ -97,11 +97,17 @@ class TestInfluxDBWorker(unittest.TestCase):
                 export_worker._write_points_batch(points_batch=export_worker._gen_points_batch(exports_batch=exports_batch))
         influxdb_client.close()
 
-    def test_consume_message_exception(self):
-        export_worker, _, _, _ = self._init_export_worker(msg_error=True)
-        export_worker.set_filter_sync(err=False)
+    def _test_run(self, filter_sync_err=False, msg_error=False):
+        export_worker, _, _, _ = self._init_export_worker(msg_error=msg_error)
+        export_worker.set_filter_sync(err=filter_sync_err)
         export_worker.run()
         self.assertFalse(export_worker.is_alive())
+
+    def test_run_message_exception(self):
+        self._test_run(msg_error=True)
+
+    def test_run_filter_sync_err(self):
+        self._test_run(filter_sync_err=True)
 
 
 if __name__ == '__main__':
