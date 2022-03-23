@@ -26,7 +26,7 @@ logger = logging.getLogger("ew")
 logger.disabled = True
 
 
-class TestKafkaError:
+class MockKafkaError:
     def __init__(self, fatal=False, code=None):
         self.__fatal = fatal
         self.__code = code
@@ -44,7 +44,7 @@ class TestKafkaError:
         return self.__code
 
 
-class TestKafkaMessage:
+class MockKafkaMessage:
     def __init__(self, value=None, topic=None, err_obj=None, partition=0, offset=None):
         self.__value = value
         self.__err_obj = err_obj
@@ -53,7 +53,7 @@ class TestKafkaMessage:
         self.__offset = offset
         self.__timestamp = (confluent_kafka.TIMESTAMP_LOG_APPEND_TIME, time.time())
 
-    def error(self) -> TestKafkaError:
+    def error(self) -> MockKafkaError:
         return self.__err_obj
 
     def value(self):
@@ -72,24 +72,39 @@ class TestKafkaMessage:
         return self.__offset
 
 
-class TestKafkaConsumer(confluent_kafka.Consumer):
-    def __init__(self, data: typing.List, msg_error: bool = False):
+class MockKafkaConsumer(confluent_kafka.Consumer):
+    def __init__(self, data: typing.Union[typing.Dict, typing.List], sources: bool = True, msg_error: bool = False, sub_topics=None):
+        self.__sources = sources
         self.__queue = queue.Queue()
-        offset = 0
-        for message in data:
-            self.__queue.put(TestKafkaMessage(value=json.dumps(message), offset=offset))
-            offset += 1
-        if msg_error:
-            err_objs = (
-                TestKafkaError(code=1),
-                TestKafkaError(fatal=True, code=2),
-                TestKafkaError(code=3)
-            )
-            for err_obj in err_objs:
-                self.__queue.put(TestKafkaMessage(err_obj=err_obj))
+        self.__offsets = dict()
+        self.__sub_topics = {item: False for item in sub_topics} if sub_topics else sub_topics
+        err_objs = (
+            MockKafkaError(code=1),
+            MockKafkaError(fatal=True, code=2),
+            MockKafkaError(code=3)
+        )
+        if self.__sources:
+            for source in data:
+                offset = 0
+                for message in data[source]:
+                    self.__queue.put(MockKafkaMessage(value=json.dumps(message), topic=source, offset=offset))
+                    offset += 1
+                if msg_error:
+                    for err_obj in err_objs:
+                        self.__queue.put(MockKafkaMessage(err_obj=err_obj, topic=source))
+        else:
+            offset = 0
+            for message in data:
+                self.__queue.put(MockKafkaMessage(value=json.dumps(message), offset=offset))
+                offset += 1
+            if msg_error:
+                for err_obj in err_objs:
+                    self.__queue.put(MockKafkaMessage(err_obj=err_obj))
 
     def subscribe(self, topics, on_assign=None, *args, **kwargs):
-        pass
+        if self.__sub_topics:
+            for topic in topics:
+                self.__sub_topics[topic] = True
 
     def poll(self, timeout=None):
         try:
@@ -109,5 +124,15 @@ class TestKafkaConsumer(confluent_kafka.Consumer):
     def empty(self):
         return self.__queue.empty()
 
+    def subscribed(self):
+        return all(self.__sub_topics.values())
+
     def store_offsets(self, offsets):
-        pass
+        for tp in offsets:
+            assert isinstance(tp, confluent_kafka.TopicPartition)
+            key = f"{tp.topic}{tp.partition}"
+            if key not in self.__offsets:
+                assert tp.offset == 1
+            else:
+                assert tp.offset == self.__offsets[key] + 1
+            self.__offsets[key] = tp.offset

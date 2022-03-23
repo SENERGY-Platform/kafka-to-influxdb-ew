@@ -36,29 +36,44 @@ with open("tests/resources/points_batch_results_l3.json") as file:
 
 
 class TestInfluxDBWorker(unittest.TestCase):
-    def _init_export_worker(self, influxdb_client=None, msg_error=False):
-        filter_handler = ew_lib.filter.FilterHandler()
-        test_kafka_consumer = TestKafkaConsumer(data=data, msg_error=msg_error)
-        kafka_data_client = ew_lib.clients.kafka.KafkaDataClient(
-            kafka_consumer=test_kafka_consumer,
-            filter_handler=filter_handler,
+    def _init_export_worker(self, msg_error=False):
+        mock_kafka_consumer_filter = MockKafkaConsumer(data=filters, sources=False)
+        filter_client = ew_lib.FilterClient(
+            kafka_consumer=mock_kafka_consumer_filter,
+            filter_topic="filter",
+            validator=ew.validate_filter,
             logger=logger
+        )
+        mock_kafka_consumer_data = MockKafkaConsumer(data=data, msg_error=msg_error, sources=False)
+        data_client = ew_lib.DataClient(
+            kafka_consumer=mock_kafka_consumer_data,
+            filter_client=filter_client,
+            kafka_msg_err_ignore=[3],
+            logger=logger
+        )
+        influxdb_client = influxdb.InfluxDBClient(
+            host="localhost",
+            port=8086,
+            retries=3,
+            timeout=5
         )
         export_worker = ew.ExportWorker(
             influxdb_client=influxdb_client,
-            data_client=kafka_data_client,
-            filter_handler=filter_handler,
+            data_client=data_client,
+            filter_client=filter_client,
         )
-        for filter in filters:
-            filter_handler.add_filter(filter=filter)
-        export_worker.set_filter_sync(err=False)
-        return export_worker, kafka_data_client, test_kafka_consumer
+        filter_client.start()
+        while not mock_kafka_consumer_filter.empty():
+            time.sleep(0.1)
+        filter_client.stop()
+        filter_client.join()
+        return export_worker, data_client, mock_kafka_consumer_data, influxdb_client
 
     def _test_gen_points_batch(self, limit, results):
-        export_worker, kafka_data_client, test_kafka_consumer = self._init_export_worker()
+        export_worker, data_client, mock_kafka_consumer, _ = self._init_export_worker()
         count = 0
-        while not test_kafka_consumer.empty():
-            exports_batch, _ = kafka_data_client.get_exports_batch(timeout=5, limit=limit)
+        while not mock_kafka_consumer.empty():
+            exports_batch, _ = data_client.get_exports_batch(timeout=5, limit=limit)
             if exports_batch:
                 self.assertIn(str(export_worker._gen_points_batch(exports_batch=exports_batch)), results)
                 count += 1
@@ -71,26 +86,22 @@ class TestInfluxDBWorker(unittest.TestCase):
         self._test_gen_points_batch(limit=3, results=gen_points_batch_results_l3)
 
     def test_write_points_batch(self):
-        influxdb_client = influxdb.InfluxDBClient(
-            host="localhost",
-            port=8086,
-            retries=3,
-            timeout=5
-        )
+        export_worker, data_client, mock_kafka_consumer, influxdb_client = self._init_export_worker()
         try:
             influxdb_client.ping()
         except Exception:
             self.skipTest("influxdb not reachable")
-        export_worker, kafka_data_client, test_kafka_consumer = self._init_export_worker(influxdb_client=influxdb_client)
-        while not test_kafka_consumer.empty():
-            exports_batch, _ = kafka_data_client.get_exports_batch(timeout=5, limit=2)
+        while not mock_kafka_consumer.empty():
+            exports_batch, _ = data_client.get_exports_batch(timeout=5, limit=2)
             if exports_batch:
                 export_worker._write_points_batch(points_batch=export_worker._gen_points_batch(exports_batch=exports_batch))
         influxdb_client.close()
 
     def test_consume_message_exception(self):
-        export_worker, _, _ = self._init_export_worker(msg_error=True)
+        export_worker, _, _, _ = self._init_export_worker(msg_error=True)
+        export_worker.set_filter_sync(err=False)
         export_worker.run()
+        self.assertFalse(export_worker.is_alive())
 
 
 if __name__ == '__main__':
