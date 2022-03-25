@@ -75,7 +75,7 @@ def validate_filter(filter: dict):
         if ExportArgs.time_key in filter["args"]:
             if not filter['args'][ExportArgs.time_key]:
                 return False
-            if f"{filter['args'][ExportArgs.time_key]}:string:extra" not in filter["mappings"]:
+            if f"{filter['args'][ExportArgs.time_key]}:extra" not in filter["mappings"]:
                 return False
         if ExportArgs.time_precision in filter["args"] and filter["args"][ExportArgs.time_precision] not in influxdb_time_precision_values:
             return False
