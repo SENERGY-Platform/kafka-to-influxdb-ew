@@ -19,7 +19,13 @@
       "id": "export-1",
       "args": {
         "db_name": "db_1",
-        "time_key": "time"
+        "time_key": "time",
+        "type_casts": {
+          "int_val": "integer",
+          "float_val": "floating-point",
+          "str_val": "string",
+          "bool_val": "boolean"
+        }
       }
     },
     "timestamp": 1646145513
@@ -45,7 +51,10 @@
       "args": {
         "db_name": "db_1",
         "time_key": "time",
-        "time_precision": "ms"
+        "time_precision": "ms",
+        "type_casts": {
+          "val_float": "floating-point"
+        }
       }
     },
     "timestamp": 1646145514
@@ -68,7 +77,10 @@
       "id": "export-3",
       "args": {
         "db_name": "db_1",
-        "time_key": "time"
+        "time_key": "time",
+        "type_casts": {
+          "float_val": "floating-point"
+        }
       }
     },
     "timestamp": 1646145515
@@ -93,7 +105,11 @@
       "id": "export-4",
       "args": {
         "db_name": "db_2",
-        "time_key": "time"
+        "time_key": "time",
+        "type_casts": {
+          "float_val": "floating-point",
+          "time": "string"
+        }
       }
     },
     "timestamp": 1646145516
