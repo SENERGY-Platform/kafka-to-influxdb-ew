@@ -23,10 +23,12 @@ import influxdb
 import threading
 import typing
 import datetime
+import json
 
 
 class ExportArgs:
     db_name = "db_name"
+    type_casts = "type_casts"
     time_key = "time_key"
     time_format = "time_format"
     time_precision = "time_precision"
@@ -41,6 +43,19 @@ class InfluxDBPoint:
 
 
 influxdb_time_precision_values = ("s", "m", "ms", "u")
+
+
+def to_json(obj):
+    return json.dumps(obj, separators=(',', ':'))
+
+
+type_map = {
+    "integer": int,
+    "floating-point": float,
+    "string": str,
+    "boolean": bool,
+    "json": to_json
+}
 
 
 class WritePointsError(Exception):
@@ -79,9 +94,17 @@ def validate_filter(filter: dict):
                 return False
         if ExportArgs.time_precision in filter["args"] and filter["args"][ExportArgs.time_precision] not in influxdb_time_precision_values:
             return False
+        if ExportArgs.type_casts in filter["args"]:
+            for val in filter["args"][ExportArgs.type_casts].values():
+                if val not in type_map:
+                    return False
         return True
     except Exception as ex:
         raise ValidateFilterError(ex)
+
+
+def cast_type(key, val, cast_map):
+    return type_map[cast_map[key]](val) if key in cast_map else val
 
 
 def convert_timestamp(timestamp: str, fmt: str, utc: bool):
@@ -92,19 +115,19 @@ def convert_timestamp(timestamp: str, fmt: str, utc: bool):
         return f"{time_obj.isoformat()}"
 
 
-def gen_point(export_id, export_data, export_extra, time_key: typing.Optional[str] = None, time_format: typing.Optional[str] = None, utc: typing.Optional[bool] = None) -> typing.Dict:
+def gen_point(export_id, export_data, export_extra, cast_map: typing.Optional[typing.Dict] = None, time_key: typing.Optional[str] = None, time_format: typing.Optional[str] = None, utc: typing.Optional[bool] = None) -> typing.Dict:
     point = {
         InfluxDBPoint.measurement: export_id,
-        InfluxDBPoint.fields: export_data
+        InfluxDBPoint.fields: {key: cast_type(key=key, val=val, cast_map=cast_map) for key, val in export_data.items()} if cast_map else export_data
     }
     if time_key:
         if utc is None:
             utc = True
         point[InfluxDBPoint.time] = convert_timestamp(timestamp=export_extra[time_key], fmt=time_format, utc=utc) if time_format else export_extra[time_key]
     if len(export_extra) > 1 and time_key:
-        point[InfluxDBPoint.tags] = {key: val for key, val in export_extra.items() if key != time_key}
+        point[InfluxDBPoint.tags] = {key: cast_type(key=key, val=val, cast_map=cast_map) for key, val in export_extra.items() if key != time_key} if cast_map else {key: val for key, val in export_extra.items() if key != time_key}
     elif export_extra and not time_key:
-        point[InfluxDBPoint.tags] = export_extra
+        point[InfluxDBPoint.tags] = {key: cast_type(key=key, val=val, cast_map=cast_map) for key, val in export_extra.items()} if cast_map else export_extra
     return point
 
 
@@ -139,6 +162,7 @@ class ExportWorker:
                         export_id=export_id,
                         export_data=result.data,
                         export_extra=result.extra,
+                        cast_map=export_args.get(ExportArgs.type_casts),
                         time_key=export_args.get(ExportArgs.time_key),
                         time_format=export_args.get(ExportArgs.time_format),
                         utc=export_args.get(ExportArgs.utc)
