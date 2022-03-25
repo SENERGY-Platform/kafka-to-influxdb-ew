@@ -63,7 +63,7 @@ def object_to_string(obj):
 
 
 # https://json-schema.org/understanding-json-schema/reference/type.html
-type_map = {
+type_casts = {
     ":integer": int,
     ":number": float,
     ":string": str,
@@ -112,7 +112,7 @@ def validate_filter(filter: dict):
             return False
         if ExportArgs.type_casts in filter["args"]:
             for val in filter["args"][ExportArgs.type_casts].values():
-                if val not in type_map:
+                if val not in type_casts:
                     return False
         return True
     except Exception as ex:
@@ -120,7 +120,7 @@ def validate_filter(filter: dict):
 
 
 def cast_type(key, val, cast_map):
-    return type_map[cast_map[key]](val) if key in cast_map else val
+    return type_casts[cast_map[key]](val) if key in cast_map else val
 
 
 def convert_timestamp(timestamp: str, fmt: str, utc: bool):
