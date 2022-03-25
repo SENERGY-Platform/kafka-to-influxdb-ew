@@ -10,11 +10,11 @@
         }
       ],
       "mappings": {
-        "int_val:int:data": "val_int",
-        "float_val:float:data": "val_float",
-        "str_val:string:data": "val_str",
-        "bool_val:bool:data": "val_bool",
-        "time:string:extra": "timestamp"
+        "int_val:data": "val_int",
+        "float_val:data": "val_float",
+        "str_val:data": "val_str",
+        "bool_val:data": "val_bool",
+        "time:extra": "timestamp"
       },
       "id": "export-1",
       "args": {
@@ -35,11 +35,11 @@
         }
       ],
       "mappings": {
-        "val_int:int:data": "val_int",
-        "val_float:float:data": "val_float",
-        "val_str:string:data": "val_str",
-        "val_bool:bool:data": "val_bool",
-        "time:string:extra": "timestamp"
+        "val_int:data": "val_int",
+        "val_float:data": "val_float",
+        "val_str:data": "val_str",
+        "val_bool:data": "val_bool",
+        "time:extra": "timestamp"
       },
       "id": "export-2",
       "args": {
@@ -61,9 +61,9 @@
         }
       ],
       "mappings": {
-        "int_val:int:data": "val_int",
-        "float_val:float:data": "val_float",
-        "time:string:extra": "timestamp"
+        "int_val:data": "val_int",
+        "float_val:data": "val_float",
+        "time:extra": "timestamp"
       },
       "id": "export-3",
       "args": {
@@ -84,11 +84,11 @@
         }
       ],
       "mappings": {
-        "int_val:int:data": "val_int",
-        "float_val:float:data": "val_float",
-        "str_val:string:extra": "val_str",
-        "bool_val:bool:data": "val_bool",
-        "time:string:extra": "timestamp"
+        "int_val:data": "val_int",
+        "float_val:data": "val_float",
+        "str_val:extra": "val_str",
+        "bool_val:data": "val_bool",
+        "time:extra": "timestamp"
       },
       "id": "export-4",
       "args": {
@@ -109,8 +109,8 @@
         }
       ],
       "mappings": {
-        "val:int:data": "val",
-        "time:string:extra": "timestamp"
+        "val:data": "val",
+        "time:extra": "timestamp"
       },
       "id": "export-5",
       "args": {
