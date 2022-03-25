@@ -21,10 +21,10 @@
         "db_name": "db_1",
         "time_key": "time",
         "type_casts": {
-          "int_val": "integer",
-          "float_val": "floating-point",
-          "str_val": "string",
-          "bool_val": "boolean"
+          "int_val": ":integer",
+          "float_val": ":number",
+          "str_val": ":string",
+          "bool_val": ":boolean"
         }
       }
     },
@@ -41,8 +41,8 @@
         }
       ],
       "mappings": {
-        "val_int:data": "val_int",
-        "val_float:data": "val_float",
+        "val_int:data": "val_float",
+        "val_float:data": "val_int",
         "val_str:data": "val_str",
         "val_bool:data": "val_bool",
         "time:extra": "timestamp"
@@ -53,7 +53,8 @@
         "time_key": "time",
         "time_precision": "ms",
         "type_casts": {
-          "val_float": "floating-point"
+          "val_float": ":number",
+          "val_int": ":integer"
         }
       }
     },
@@ -79,7 +80,7 @@
         "db_name": "db_1",
         "time_key": "time",
         "type_casts": {
-          "float_val": "floating-point"
+          "float_val": ":number"
         }
       }
     },
@@ -107,8 +108,8 @@
         "db_name": "db_2",
         "time_key": "time",
         "type_casts": {
-          "float_val": "floating-point",
-          "time": "string"
+          "float_val": ":number",
+          "time": ":string"
         }
       }
     },
