@@ -52,11 +52,11 @@ class WritePointsError(Exception):
             else:
                 pts[point[InfluxDBPoint.measurement]] += 1
         msg = f"writing points failed: reason={util.get_exception_str(ex)} database={db_name} points_per_measurement={pts}"
-        if code:
+        if code is not None:
             msg += f" code={code}"
-        if args:
+        if args is not None:
             msg += f" args={args}"
-        if content:
+        if content is not None:
             msg += f" content={content}"
         super().__init__(msg)
 
