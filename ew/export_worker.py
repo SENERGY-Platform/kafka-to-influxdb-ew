@@ -174,22 +174,17 @@ class ExportWorker:
     def _write_points_batch(self, points_batch: typing.Dict):
         for db_name, batch in points_batch.items():
             for time_precision, points in batch.items():
-                while True:
-                    try:
-                        self.__influxdb_client.write_points(
-                            points=points,
-                            time_precision=time_precision,
-                            database=db_name,
-                        )
-                        break
-                    except influxdb.client.InfluxDBClientError as ex:
-                        if ex.code == 404:
-                            self.__influxdb_client.create_database(dbname=db_name)
-                        else:
-                            raise WritePointsError(points, db_name, ex, ex.code, ex.args, ex.content)
-                    except Exception as ex:
-                        util.logger.exception(ex)
-                        raise WritePointsError(points, db_name, ex)
+                try:
+                    self.__influxdb_client.write_points(points=points, time_precision=time_precision, database=db_name)
+                except influxdb.client.InfluxDBClientError as ex:
+                    if ex.code == 404:
+                        self.__influxdb_client.create_database(dbname=db_name)
+                        self.__influxdb_client.write_points(points=points, time_precision=time_precision, database=db_name)
+                    else:
+                        raise WritePointsError(points, db_name, ex, ex.code, ex.args, ex.content)
+                except Exception as ex:
+                    util.logger.exception(ex)
+                    raise WritePointsError(points, db_name, ex)
 
     def set_filter_sync(self, err: bool):
         self.__filter_sync_err = err
