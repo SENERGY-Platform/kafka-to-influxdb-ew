@@ -51,7 +51,7 @@ class WritePointsError(Exception):
                 pts[point[InfluxDBPoint.measurement]] = 1
             else:
                 pts[point[InfluxDBPoint.measurement]] += 1
-        super().__init__(f"writing points failed: reason={util.get_exception_str(ex)} database={db_name} points={pts}")
+        super().__init__(f"writing points failed: reason={ex.content} database={db_name} points={pts}")
 
 
 class ValidateFilterError(Exception):
