@@ -45,16 +45,32 @@ class InfluxDBPoint:
 influxdb_time_precision_values = ("s", "m", "ms", "u")
 
 
-def to_json(obj):
+bool_true_strings = {"True", "true", "1"}
+bool_false_strings = {"False", "false", "0"}
+
+
+def string_to_boolean(string):
+    if string in bool_true_strings:
+        return True
+    elif string in bool_false_strings:
+        return False
+    else:
+        raise ValueError(string)
+
+
+def object_to_string(obj):
     return json.dumps(obj, separators=(',', ':'))
 
 
+# https://json-schema.org/understanding-json-schema/reference/type.html
 type_map = {
-    "integer": int,
-    "number": float,
-    "string": str,
-    "boolean": bool,
-    "json": to_json
+    ":integer": int,
+    ":number": float,
+    ":string": str,
+    ":boolean": bool,
+    "string:boolean": string_to_boolean,
+    "object:string": object_to_string,
+    "array:string": object_to_string
 }
 
 
