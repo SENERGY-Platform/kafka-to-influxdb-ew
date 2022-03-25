@@ -44,14 +44,21 @@ influxdb_time_precision_values = ("s", "m", "ms", "u")
 
 
 class WritePointsError(Exception):
-    def __init__(self, points, db_name, ex):
+    def __init__(self, points, db_name, ex, code=None, args=None, content=None):
         pts = dict()
         for point in points:
             if point[InfluxDBPoint.measurement] not in pts:
                 pts[point[InfluxDBPoint.measurement]] = 1
             else:
                 pts[point[InfluxDBPoint.measurement]] += 1
-        super().__init__(f"writing points failed: reason={ex.content} database={db_name} points={pts}")
+        msg = f"writing points failed: reason={util.get_exception_str(ex)} database={db_name} points_per_measurement={pts}"
+        if code:
+            msg += f" code={code}"
+        if args:
+            msg += f" args={args}"
+        if content:
+            msg += f" content={content}"
+        super().__init__(msg)
 
 
 class ValidateFilterError(Exception):
@@ -155,7 +162,7 @@ class ExportWorker:
                         if ex.code == 404:
                             self.__influxdb_client.create_database(dbname=db_name)
                         else:
-                            raise WritePointsError(points, db_name, ex)
+                            raise WritePointsError(points, db_name, ex, ex.code, ex.args, ex.content)
                     except Exception as ex:
                         raise WritePointsError(points, db_name, ex)
 
