@@ -51,7 +51,7 @@ def to_json(obj):
 
 type_map = {
     "integer": int,
-    "floating-point": float,
+    "number": float,
     "string": str,
     "boolean": bool,
     "json": to_json
