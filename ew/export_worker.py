@@ -144,7 +144,7 @@ class ExportWorker:
                         utc=export_args.get(ExportArgs.utc)
                     ))
                 except Exception as ex:
-                    util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: generating points failed: reason={util.get_exception_str(ex)} export_id={export_id}")
+                    util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: generating point failed: reason={util.get_exception_str(ex)} export_id={export_id}")
         return points_batch
 
     def _write_points_batch(self, points_batch: typing.Dict):
