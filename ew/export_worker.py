@@ -150,6 +150,7 @@ def gen_point(export_id, export_data, export_extra, cast_map: typing.Optional[ty
 class ExportWorker:
     __log_msg_prefix = "export worker"
     __log_err_msg_prefix = f"{__log_msg_prefix} error"
+    __influxdb_err_status_codes = (400, 413)
 
     def __init__(self, influxdb_client: influxdb.InfluxDBClient, data_client: ew_lib.DataClient, filter_client: ew_lib.FilterClient, get_data_timeout: float = 5.0, get_data_limit: int = 10000):
         self.__influxdb_client = influxdb_client
@@ -190,28 +191,36 @@ class ExportWorker:
                         util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: generating point failed: reason={util.get_exception_str(ex)} export_id={export_id}")
         return points_batch
 
+    def _write_points(self, points: typing.List[typing.Dict], db_name: str, time_precision: str, is_retry=False):
+        try:
+            self.__influxdb_client.write_points(points=points, time_precision=time_precision, database=db_name)
+        except influxdb.client.InfluxDBClientError as ex:
+            if ex.code == 404:
+                if not is_retry:
+                    self.__influxdb_client.create_database(dbname=db_name)
+                    self._write_points(points=points, db_name=db_name, time_precision=time_precision, is_retry=True)
+                else:
+                    raise WritePointsError(points, db_name, ex, ex.code, ex.args, ex.content)
+            elif ex.code in ExportWorker.__influxdb_err_status_codes:
+                groups = dict()
+                for point in points:
+                    if point[InfluxDBPoint.measurement] not in groups:
+                        groups[point[InfluxDBPoint.measurement]] = list()
+                    groups[point[InfluxDBPoint.measurement]].append(point)
+                for group in groups.values():
+                    try:
+                        self.__influxdb_client.write_points(points=group, time_precision=time_precision, database=db_name)
+                    except influxdb.client.InfluxDBClientError as ex:
+                        util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: {WritePointsError(group, db_name, ex, ex.code, ex.args, ex.content)}")
+            else:
+                raise WritePointsError(points, db_name, ex, ex.code, ex.args, ex.content)
+        except Exception as ex:
+            raise WritePointsError(points, db_name, ex)
+
     def _write_points_batch(self, points_batch: typing.Dict):
         for db_name, batch in points_batch.items():
             for time_precision, points in batch.items():
-                try:
-                    self.__influxdb_client.write_points(points=points, time_precision=time_precision, database=db_name)
-                except influxdb.client.InfluxDBClientError as ex:
-                    if ex.code == 404:
-                        self.__influxdb_client.create_database(dbname=db_name)
-                        self.__influxdb_client.write_points(points=points, time_precision=time_precision, database=db_name)
-                    else:
-                        groups = dict()
-                        for point in points:
-                            if point[InfluxDBPoint.measurement] not in groups:
-                                groups[point[InfluxDBPoint.measurement]] = list()
-                            groups[point[InfluxDBPoint.measurement]].append(point)
-                        for group in groups.values():
-                            try:
-                                self.__influxdb_client.write_points(points=group, time_precision=time_precision, database=db_name)
-                            except influxdb.client.InfluxDBClientError as ex:
-                                util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: {WritePointsError(group, db_name, ex, ex.code, ex.args, ex.content)}")
-                except Exception as ex:
-                    raise WritePointsError(points, db_name, ex)
+                self._write_points(points=points, db_name=db_name, time_precision=time_precision)
 
     def set_filter_sync(self, err: bool):
         self.__filter_sync_err = err
