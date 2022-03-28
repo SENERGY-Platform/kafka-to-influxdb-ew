@@ -200,7 +200,16 @@ class ExportWorker:
                         self.__influxdb_client.create_database(dbname=db_name)
                         self.__influxdb_client.write_points(points=points, time_precision=time_precision, database=db_name)
                     else:
-                        util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: {WritePointsError(points, db_name, ex, ex.code, ex.args, ex.content)}")
+                        groups = dict()
+                        for point in points:
+                            if point[InfluxDBPoint.measurement] not in groups:
+                                groups[point[InfluxDBPoint.measurement]] = list()
+                            groups[point[InfluxDBPoint.measurement]].append(point)
+                        for group in groups.values():
+                            try:
+                                self.__influxdb_client.write_points(points=group, time_precision=time_precision, database=db_name)
+                            except influxdb.client.InfluxDBClientError as ex:
+                                util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: {WritePointsError(group, db_name, ex, ex.code, ex.args, ex.content)}")
                 except Exception as ex:
                     raise WritePointsError(points, db_name, ex)
 
