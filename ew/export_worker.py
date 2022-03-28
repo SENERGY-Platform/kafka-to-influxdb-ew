@@ -199,7 +199,6 @@ class ExportWorker:
                     else:
                         raise WritePointsError(points, db_name, ex, ex.code, ex.args, ex.content)
                 except Exception as ex:
-                    util.logger.exception(ex)
                     raise WritePointsError(points, db_name, ex)
 
     def set_filter_sync(self, err: bool):
