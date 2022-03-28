@@ -224,6 +224,7 @@ class ExportWorker:
                     exports_batch = self.__data_client.get_exports_batch(
                         timeout=self.__get_data_timeout,
                         limit=self.__get_data_limit,
+                        data_ignore_missing_keys=True
                     )
                     if exports_batch:
                         if exports_batch[1]:
