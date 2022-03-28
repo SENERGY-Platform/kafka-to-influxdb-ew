@@ -120,7 +120,7 @@ def validate_filter(filter: dict):
 
 
 def cast_type(key, val, cast_map):
-    return type_casts[cast_map[key]](val) if key in cast_map else val
+    return type_casts[cast_map[key]](val) if key in cast_map and val is not None else val
 
 
 def convert_timestamp(timestamp: str, fmt: str, utc: bool):
