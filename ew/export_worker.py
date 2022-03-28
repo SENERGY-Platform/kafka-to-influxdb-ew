@@ -166,7 +166,7 @@ class ExportWorker:
         points_batch = dict()
         for result in exports_batch:
             if result.ex:
-                util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: generating points failed: reason={util.get_exception_str(result.ex)}")
+                util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: generating points failed: reason={util.get_exception_str(result.ex)} export_ids={result.filter_ids}")
             else:
                 for export_id in result.filter_ids:
                     try:
