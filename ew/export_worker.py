@@ -199,7 +199,7 @@ class ExportWorker:
                         self.__influxdb_client.create_database(dbname=db_name)
                         self.__influxdb_client.write_points(points=points, time_precision=time_precision, database=db_name)
                     else:
-                        raise WritePointsError(points, db_name, ex, ex.code, ex.args, ex.content)
+                        util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: {WritePointsError(points, db_name, ex, ex.code, ex.args, ex.content)}")
                 except Exception as ex:
                     raise WritePointsError(points, db_name, ex)
 
