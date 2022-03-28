@@ -165,28 +165,29 @@ class ExportWorker:
     def _gen_points_batch(self, exports_batch: typing.List[mf_lib.FilterResult]):
         points_batch = dict()
         for result in exports_batch:
-            for export_id in result.filter_ids:
-                try:
-                    if result.ex:
-                        raise result.ex
-                    export_args = self.__filter_client.handler.get_filter_args(id=export_id)
-                    db_name = export_args[ExportArgs.db_name]
-                    time_precision = export_args.get(ExportArgs.time_precision)
-                    if db_name not in points_batch:
-                        points_batch[db_name] = {time_precision: list()}
-                    if time_precision not in points_batch[db_name]:
-                        points_batch[db_name][time_precision] = list()
-                    points_batch[db_name][time_precision].append(gen_point(
-                        export_id=export_id,
-                        export_data=result.data,
-                        export_extra=result.extra,
-                        cast_map=export_args.get(ExportArgs.type_casts),
-                        time_key=export_args.get(ExportArgs.time_key),
-                        time_format=export_args.get(ExportArgs.time_format),
-                        utc=export_args.get(ExportArgs.utc)
-                    ))
-                except Exception as ex:
-                    util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: generating point failed: reason={util.get_exception_str(ex)} export_id={export_id}")
+            if result.ex:
+                util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: generating points failed: reason={util.get_exception_str(result.ex)}")
+            else:
+                for export_id in result.filter_ids:
+                    try:
+                        export_args = self.__filter_client.handler.get_filter_args(id=export_id)
+                        db_name = export_args[ExportArgs.db_name]
+                        time_precision = export_args.get(ExportArgs.time_precision)
+                        if db_name not in points_batch:
+                            points_batch[db_name] = {time_precision: list()}
+                        if time_precision not in points_batch[db_name]:
+                            points_batch[db_name][time_precision] = list()
+                        points_batch[db_name][time_precision].append(gen_point(
+                            export_id=export_id,
+                            export_data=result.data,
+                            export_extra=result.extra,
+                            cast_map=export_args.get(ExportArgs.type_casts),
+                            time_key=export_args.get(ExportArgs.time_key),
+                            time_format=export_args.get(ExportArgs.time_format),
+                            utc=export_args.get(ExportArgs.utc)
+                        ))
+                    except Exception as ex:
+                        util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: generating point failed: reason={util.get_exception_str(ex)} export_id={export_id}")
         return points_batch
 
     def _write_points_batch(self, points_batch: typing.Dict):
