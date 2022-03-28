@@ -226,7 +226,7 @@ class ExportWorker:
                     )
                     if exports_batch:
                         if exports_batch[1]:
-                            raise RuntimeError(f"kafka message error codes: {set(ex.code for ex in exports_batch[1])}")
+                            raise RuntimeError(set(str(ex) for ex in exports_batch[1]))
                         if exports_batch[0]:
                             self._write_points_batch(points_batch=self._gen_points_batch(exports_batch=exports_batch[0]))
                             self.__data_client.store_offsets()
