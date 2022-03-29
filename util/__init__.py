@@ -17,7 +17,6 @@
 from .config import *
 from .logger import *
 import math
-import traceback
 
 
 def print_init(name, git_info_file):
@@ -39,7 +38,3 @@ def print_init(name, git_info_file):
     for line in lines:
         print(line)
     print("*" * l_len)
-
-
-def get_exception_str(ex):
-    return "[" + ", ".join([item.strip().replace("\n", " ") for item in traceback.format_exception_only(type(ex), ex)]) + "]"

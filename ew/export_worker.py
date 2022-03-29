@@ -16,135 +16,14 @@
 
 __all__ = ("ExportWorker", "validate_filter")
 
+from .util import *
+from .model import *
 import util
 import ew_lib
 import mf_lib
 import influxdb
 import threading
 import typing
-import datetime
-import json
-
-
-class ExportArgs:
-    db_name = "db_name"
-    type_casts = "type_casts"
-    time_key = "time_key"
-    time_format = "time_format"
-    time_precision = "time_precision"
-    utc = "utc"
-
-
-class InfluxDBPoint:
-    measurement = "measurement"
-    fields = "fields"
-    tags = "tags"
-    time = "time"
-
-
-influxdb_time_precision_values = ("s", "m", "ms", "u")
-
-
-bool_true_strings = {"True", "true", "1"}
-bool_false_strings = {"False", "false", "0"}
-
-
-def string_to_boolean(string):
-    if string in bool_true_strings:
-        return True
-    elif string in bool_false_strings:
-        return False
-    else:
-        raise ValueError(string)
-
-
-def object_to_string(obj):
-    return json.dumps(obj, separators=(',', ':'))
-
-
-# https://json-schema.org/understanding-json-schema/reference/type.html
-type_casts = {
-    ":integer": int,
-    ":number": float,
-    ":string": str,
-    ":boolean": bool,
-    "string:boolean": string_to_boolean,
-    "object:string": object_to_string,
-    "array:string": object_to_string
-}
-
-
-class WritePointsError(Exception):
-    def __init__(self, points, db_name, ex, code=None, args=None, content=None):
-        pts = dict()
-        for point in points:
-            if point[InfluxDBPoint.measurement] not in pts:
-                pts[point[InfluxDBPoint.measurement]] = 1
-            else:
-                pts[point[InfluxDBPoint.measurement]] += 1
-        msg = f"writing points failed: reason={util.get_exception_str(ex)} database='{db_name}' points_per_measurement={pts}"
-        if code is not None:
-            msg += f" code={code}"
-        if args is not None:
-            msg += f" args={args}"
-        if content is not None:
-            msg += f" content={content}"
-        super().__init__(msg)
-
-
-class ValidateFilterError(Exception):
-    def __init__(self, ex):
-        super().__init__(util.get_exception_str(ex))
-
-
-def validate_filter(filter: dict):
-    try:
-        if ExportArgs.db_name not in filter["args"]:
-            return False
-        if not filter["args"][ExportArgs.db_name]:
-            return False
-        if ExportArgs.time_key in filter["args"]:
-            if not filter['args'][ExportArgs.time_key]:
-                return False
-            if f"{filter['args'][ExportArgs.time_key]}:extra" not in filter["mappings"]:
-                return False
-        if ExportArgs.time_precision in filter["args"] and filter["args"][ExportArgs.time_precision] not in influxdb_time_precision_values:
-            return False
-        if ExportArgs.type_casts in filter["args"]:
-            for val in filter["args"][ExportArgs.type_casts].values():
-                if val not in type_casts:
-                    return False
-        return True
-    except Exception as ex:
-        raise ValidateFilterError(ex)
-
-
-def cast_type(key, val, cast_map):
-    return type_casts[cast_map[key]](val) if key in cast_map and val is not None else val
-
-
-def convert_timestamp(timestamp: str, fmt: str, utc: bool):
-    time_obj = datetime.datetime.strptime(timestamp, fmt)
-    if utc:
-        return f"{time_obj.isoformat()}Z"
-    else:
-        return f"{time_obj.isoformat()}"
-
-
-def gen_point(export_id, export_data, export_extra, cast_map: typing.Optional[typing.Dict] = None, time_key: typing.Optional[str] = None, time_format: typing.Optional[str] = None, utc: typing.Optional[bool] = None) -> typing.Dict:
-    point = {
-        InfluxDBPoint.measurement: export_id,
-        InfluxDBPoint.fields: {key: cast_type(key=key, val=val, cast_map=cast_map) for key, val in export_data.items()} if cast_map else export_data
-    }
-    if time_key:
-        if utc is None:
-            utc = True
-        point[InfluxDBPoint.time] = convert_timestamp(timestamp=export_extra[time_key], fmt=time_format, utc=utc) if time_format else export_extra[time_key]
-    if len(export_extra) > 1 and time_key:
-        point[InfluxDBPoint.tags] = {key: cast_type(key=key, val=val, cast_map=cast_map) for key, val in export_extra.items() if key != time_key} if cast_map else {key: val for key, val in export_extra.items() if key != time_key}
-    elif export_extra and not time_key:
-        point[InfluxDBPoint.tags] = {key: cast_type(key=key, val=val, cast_map=cast_map) for key, val in export_extra.items()} if cast_map else export_extra
-    return point
 
 
 class ExportWorker:
@@ -167,7 +46,7 @@ class ExportWorker:
         points_batch = dict()
         for result in exports_batch:
             if result.ex:
-                util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: generating points failed: reason={util.get_exception_str(result.ex)} export_ids={result.filter_ids}")
+                util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: generating points failed: reason={get_exception_str(result.ex)} export_ids={result.filter_ids}")
             else:
                 for export_id in result.filter_ids:
                     try:
@@ -188,7 +67,7 @@ class ExportWorker:
                             utc=export_args.get(ExportArgs.utc)
                         ))
                     except Exception as ex:
-                        util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: generating point failed: reason={util.get_exception_str(ex)} export_id={export_id}")
+                        util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: generating point failed: reason={get_exception_str(ex)} export_id={export_id}")
         return points_batch
 
     def _write_points(self, points: typing.List[typing.Dict], db_name: str, time_precision: str, is_retry=False):
@@ -254,6 +133,6 @@ class ExportWorker:
                     util.logger.critical(f"{ExportWorker.__log_err_msg_prefix}: {ex}")
                     self.__stop = True
                 except Exception as ex:
-                    util.logger.critical(f"{ExportWorker.__log_err_msg_prefix}: consuming exports failed: reason={util.get_exception_str(ex)}")
+                    util.logger.critical(f"{ExportWorker.__log_err_msg_prefix}: consuming exports failed: reason={get_exception_str(ex)}")
                     self.__stop = True
         self.__stopped = True
