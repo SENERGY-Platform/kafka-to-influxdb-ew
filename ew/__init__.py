@@ -14,4 +14,5 @@
    limitations under the License.
 """
 
-from .export_worker import *
+from .worker import *
+from .util import validate_filter

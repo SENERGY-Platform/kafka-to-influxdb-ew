@@ -14,7 +14,7 @@
    limitations under the License.
 """
 
-__all__ = ("ExportWorker", "validate_filter")
+__all__ = ("ExportWorker", )
 
 from .util import *
 from .model import *
