@@ -25,7 +25,7 @@ import signal
 
 if __name__ == '__main__':
     util.print_init(name="kafka-to-influxdb-ew", git_info_file="git_commit")
-    config = util.Config(prefix="conf", require_value=True)
+    config = util.Config(prefix="conf")
     util.init_logger(config.logger_level)
     util.logger.debug(f"export worker config: {config}")
     influxdb_client = influxdb.InfluxDBClient(
