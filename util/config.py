@@ -24,13 +24,18 @@ class KafkaConfig(sevm.Config):
     consumer_group_id_postfix = None
 
 
+class KafkaDataConsumerConfig(sevm.Config):
+    group_id = None
+    auto_offset_reset = "earliest"
+    partition_assignment_strategy = "cooperative-sticky"
+
+
 class KafkaDataClientConfig(sevm.Config):
-    consumer_group_id = None
     subscribe_interval = 5
+    kafka_msg_err_ignore = 3
 
 
 class KafkaFilterClientConfig(sevm.Config):
-    consumer_group_id = None
     filter_topic = None
     poll_timeout = 1.0
     sync_delay = 30
@@ -58,6 +63,8 @@ class Config(sevm.Config):
     get_data_limit = 10000
     kafka = KafkaConfig
     kafka_data_client = KafkaDataClientConfig
+    kafka_data_consumer = KafkaDataConsumerConfig
     kafka_filter_client = KafkaFilterClientConfig
+    kafka_filter_consumer_group_id = None
     influxdb = InfluxDBConfig
     watchdog = WatchdogConfig
