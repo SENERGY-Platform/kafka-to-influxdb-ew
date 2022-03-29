@@ -81,6 +81,7 @@ class ExportWorker:
                 else:
                     raise WritePointsError(points, db_name, ex, ex.code, ex.args, ex.content)
             elif ex.code in ExportWorker.__influxdb_err_status_codes:
+                util.logger.warning(f"{ExportWorker.__log_msg_prefix}: writing points batch failed, writing points per measurement ...")
                 groups = dict()
                 for point in points:
                     if point[InfluxDBPoint.measurement] not in groups:
