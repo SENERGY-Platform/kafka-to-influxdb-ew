@@ -24,21 +24,14 @@ influxdb_time_precision_values = ("s", "m", "ms", "u")
 
 
 class WritePointsError(Exception):
-    def __init__(self, points, db_name, ex, code=None, args=None, content=None):
+    def __init__(self, points, db_name, ex):
         pts = dict()
         for point in points:
             if point[InfluxDBPoint.measurement] not in pts:
                 pts[point[InfluxDBPoint.measurement]] = 1
             else:
                 pts[point[InfluxDBPoint.measurement]] += 1
-        msg = f"writing points failed: reason={get_exception_str(ex)} database='{db_name}' points_per_measurement={pts}"
-        if code is not None:
-            msg += f" code={code}"
-        if args is not None:
-            msg += f" args={args}"
-        if content is not None:
-            msg += f" content={content}"
-        super().__init__(msg)
+        super().__init__(f"writing points failed: reason={get_exception_str(ex)} database='{db_name}' points_per_measurement={pts}")
 
 
 class ValidateFilterError(Exception):

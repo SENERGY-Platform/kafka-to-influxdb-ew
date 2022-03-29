@@ -79,7 +79,7 @@ class ExportWorker:
                     self.__influxdb_client.create_database(dbname=db_name)
                     self._write_points(points=points, db_name=db_name, time_precision=time_precision, is_retry=True)
                 else:
-                    raise WritePointsError(points, db_name, ex, ex.code, ex.args, ex.content)
+                    raise WritePointsError(points, db_name, ex)
             elif ex.code in ExportWorker.__influxdb_err_status_codes:
                 util.logger.warning(f"{ExportWorker.__log_msg_prefix}: writing points batch failed, writing points per measurement ...")
                 groups = dict()
@@ -91,9 +91,9 @@ class ExportWorker:
                     try:
                         self.__influxdb_client.write_points(points=group, time_precision=time_precision, database=db_name)
                     except influxdb.client.InfluxDBClientError as ex:
-                        util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: {WritePointsError(group, db_name, ex, ex.code, ex.args, ex.content)}")
+                        util.logger.error(f"{ExportWorker.__log_err_msg_prefix}: {WritePointsError(group, db_name, ex)}")
             else:
-                raise WritePointsError(points, db_name, ex, ex.code, ex.args, ex.content)
+                raise WritePointsError(points, db_name, ex)
         except Exception as ex:
             raise WritePointsError(points, db_name, ex)
 
