@@ -100,18 +100,11 @@ class ExportWorker:
 
     def _write_points_batch(self, points_batch: typing.Dict):
         if util.logger.level == logging.DEBUG:
-            pts_stats = dict()
+            pts_total = 0
             for b in points_batch.values():
                 for pts in b.values():
-                    for p in pts:
-                        if p[InfluxDBPoint.measurement] not in pts_stats:
-                            pts_stats[p[InfluxDBPoint.measurement]] = 1
-                        else:
-                            pts_stats[p[InfluxDBPoint.measurement]] += 1
-            pts_total = 0
-            for c in pts_stats.values():
-                pts_total += c
-            util.logger.debug(f"{ExportWorker.__log_msg_prefix}: writing points batch: points_total={pts_total} points_per_measurement={pts_stats}")
+                    pts_total += len(pts)
+            util.logger.debug(f"{ExportWorker.__log_msg_prefix}: writing points batch: points_total={pts_total}")
         for db_name, batch in points_batch.items():
             for time_precision, points in batch.items():
                 self._write_points(points=points, db_name=db_name, time_precision=time_precision)
