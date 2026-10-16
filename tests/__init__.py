@@ -14,4 +14,5 @@
    limitations under the License.
 """
 
+from .test_config import *
 from .test_export_worker import *

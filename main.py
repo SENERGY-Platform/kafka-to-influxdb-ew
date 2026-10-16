@@ -27,7 +27,7 @@ if __name__ == '__main__':
     util.print_init(name="kafka-to-influxdb-ew", git_info_file="git_commit")
     config = util.Config(prefix="conf")
     util.init_logger(config.logger_level)
-    util.logger.debug(f"export worker config: {config}")
+    util.logger.debug(f"export worker config keys: {util.config_keys(config)}")
     influxdb_client = influxdb.InfluxDBClient(
         host=config.influxdb.host,
         port=config.influxdb.port,

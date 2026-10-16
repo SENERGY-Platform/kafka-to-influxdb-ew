@@ -14,7 +14,7 @@
    limitations under the License.
 """
 
-__all__ = ("Config", )
+__all__ = ("Config", "config_keys")
 
 import sevm
 
@@ -68,3 +68,14 @@ class Config(sevm.Config):
     kafka_filter_consumer_group_id = None
     influxdb = InfluxDBConfig
     watchdog = WatchdogConfig
+
+
+def config_keys(config: sevm.Config, prefix: str = "") -> list:
+    """Return the dotted key names of a config without their values, so the result is safe to log."""
+    keys = list()
+    for key, value in config.__dict__.items():
+        if isinstance(value, sevm.Config):
+            keys.extend(config_keys(value, f"{prefix}{key}."))
+        else:
+            keys.append(f"{prefix}{key}")
+    return keys
